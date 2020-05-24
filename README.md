@@ -1,7 +1,6 @@
 # Data-Riders
 
 Understand Data
-- [ ] not sure
 
 Feature Checklist
 - [ ] Missing Values
@@ -14,3 +13,4 @@ Presentation Checklist
 - [ ] PPT 10 slides (1+8+1)
 - [ ] Markdowns
 - [ ] Website
+- [ ] Find a good article from internet related to calories, nutrients and ratings and plot a catchy wordcloud
