@@ -1,5 +1,4 @@
 # Data-Riders
-R Project
 
 Feature Checklist
 - [ ] Missing Values
