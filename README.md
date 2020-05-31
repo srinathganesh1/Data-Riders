@@ -79,3 +79,26 @@ Did analysis on finding on the following
 - Company based profiling
 - Identifying trends with visualization 
 - Planned the contents for the presentation
+
+
+
+
+PPT Slides
+1. What is missing in the data / What more parameters will improve the study (Client does not always knows what is required to get the job done, we have to identify gaps and through a iterative process reduce the gaps in the data)
+- What is the selling price (does branding give fake goodness tag)
+- How much $ Sales / Units Sold (Market Share of Products/Companies)
+2. Missing Values
+- Fixing Missing Value
+3. Cluster Analysis
+4. Word Cloud
+5. List of Good and Bad parameters (for Ratings)
+6. Correlation Charts. self-life and rating
+7. 
+8. 
+
+
+Status update for DSP30:
+- Organise code by team into Git (shared place)
+- Finalize the Visualizations
+- Planned the contents for the Presentation
+- Planned the contents for website
