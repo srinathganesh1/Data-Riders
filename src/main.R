@@ -49,7 +49,7 @@ data_processing <- function (input) {
   output$mfr_names_factor = as.factor(output$mfr_names)
 
   # Calorie Categories
-  data <- within(data, {
+  output <- within(output, {
     calories_category <- NA
     calories_category[calories>=50&calories<80] <- "L"
     calories_category[calories>=80&calories<110] <- "M"
@@ -68,7 +68,6 @@ get_data <- function () {
 }
 
 data <- get_data()
-#View(data)
 
 # ---------------------------------
 # Evaluate all 16 variables one by one through concepts of sample statistics and build your
@@ -77,7 +76,8 @@ data <- get_data()
 describe(data)
 
 # 2. Density Chart for Calorie
-plot(density(data$calories))
+density(data$calories)
+plot(density(data$calories), ylab = "Probabilty Density", xlab = "Calories")
 
 # 3. Top 10 Cerials that are rating high
 d <- data %>% arrange(rating) %>% head(10) %>% select(name, rating)
@@ -92,7 +92,9 @@ plot(data$calories, data$weight)
 # 5. Correlation View of Variables
 data_grp_mfr <- data %>%
   group_by(mfr_names_factor)
-corrplot(cor((data_grp_mfr %>% select_if(is.numeric))[-1]))
+cor_result <- cor((data_grp_mfr %>% select_if(is.numeric))[-1])
+corrplot(cor_result)
+heatmap(cor_result)
 
 # 6. Distribution of Cups Per Serving
 data %>% ggplot(aes(x = weight, fill = mfr_names)) + geom_histogram() + scale_fill_brewer(palette = "Set5") +
@@ -127,113 +129,17 @@ cluster_data <- data %>% select(calories, rating, protein, fat)
 km.res <- kmeans(cluster_data, 5, nstart = 25)
 fviz_cluster(km.res, data=cluster_data, palette = "jco", ggtheme = theme_minimal())
 
-# TODO slicing and dicing
-# TODO LOGO
+# 14. Good and Bad parameters for rating
+cor_result_rating <- cor_result["rating",]
+cor_result_rating_names <- names(cor_result_rating)
+names(cor_result_rating) <- NULL
+cor_result_df <- data.frame(cor_result_rating_names, cor_result_rating) %>% arrange(cor_result_rating)
+names(cor_result_df) <- c("Parameters", "Corellation")
+ggplot(cor_result_df, aes(x=Parameters, y=Corellation)) + geom_bar(stat = "identity")
 
-# 14. Good and Bad parameters
 # 15. prediction with liner model...
-
-a <- 1
-#data[21,]
-#kNN(data)[21,]
-#dummy <- 1
-
-#data %>% group_by(mfr) %>%
-#  mutate(names=paste0(name, collapse=", ")) %>%
-#  select(mfr, names) %>%
-#  distinct(mfr, names)
-#
-#data %>% group_by(mfr, type) %>%
-#  summarise(
-#    count=n(),
-#    names=paste0(name, collapse=", ")
-#  )
-
-
-#names(data)
-#boxplot(data$calories)
-#boxplot(data$protein)
-#boxplot(data$fat)
-#boxplot(data$sodium)
-#boxplot(data$fiber)
-#boxplot(data$carbo)
-#boxplot(data$sugars)
-#boxplot(data$potass)
-#boxplot(data$vitamins)
-#boxplot(data$shelf)
-#boxplot(data$weight)
-#boxplot(data$rating)
-
-#plot(select(data, c("calories", "protein", "fat", "sodium", "rating")))
-
-#cor.test(data$weight, data$rating)
-#cor.test(data$calories, data$rating)
-#data[-c(1, 2, 3)]
-#correlation <- cor(data[-c(1, 2, 3)])
-
-#cor.test(data$calories, data$carbo)
-
-#cor.test(data$rating, data$sugars)
-#pairs(formula=~rating+sugars, data=data)
-
-#dev.off()
-
-# JUST BETWEEN SUGAR AND RATING!!!!!
-# so dont expect it to be correct!
-#names(data)
 model <- lm(rating~sugars+calories+protein+fat+sodium+fiber+carbo+potass+vitamins+shelf+weight+cups, data=data)
-
-#a <- data[1,]
-#a
-#b <- a
-#b["fat"] <- 2
-data
-#data.frame(data$sugars, data$rating)
-predict(model, data[c(1:3), ], interval='prediction')
 changed_data <- data
-changed_data[changed_data$name=="100%_Natural_Bran",]
-changed_data[changed_data$name=="100%_Natural_Bran",]$carbo <- 10
-data.frame(data, predicted_rating=predict(model, changed_data))[c(1:3), ]
-#data.frame(data$rating, data$sugars, predict(model, data.frame(sugars=data$sugars), interval="prediction"))
-
-#install.packages("plotly")
-#install.packages("quantmod")
-library(ggplot2)
-library(plotly)
-library(quantmod)
-library(dplyr)
-
-
-#process_w_rating <- data %>%
-#  group_by(mfr_names_factor) %>%
-#  summarise(
-#    product_count=n(),
-#    rating_range_low=range(rating)[1],
-#    rating_range_high=range(rating)[2],
-#    rating_mean=mean(rating),
-#  )
-
-#plot(process_w_rating$mfr_names_factor, process_w_rating$rating_range_low, ylim = c(1, 100), type="l", col="red")
-#par(new=TRUE)
-#plot(process_w_rating$mfr_names_factor, process_w_rating$rating_range_high, ylim = c(1, 100), type="l", col="blue")
-#par(new=TRUE)
-#plot(process_w_rating$mfr_names_factor, process_w_rating$rating_mean, ylim = c(1, 100), type="l", col="blue")
-
-data_grp_mfr <- data %>%
-  group_by(mfr_names_factor)
-
-#fig <- plot_ly(y=a$rating, type="box")
-#fig
-
-#library(ggplot2)
-#ggplot(data=data2, aes(x=mfr_names_factor, y=rating)) + geom_boxplot(aes(fill=mfr_names_factor))
-
-
-
-a <- data_grp_mfr %>% select_if(is.numeric)
-a[-c(1)]
-(data_grp_mfr %>% select_if(is.numeric))[-1]
-library(corrplot)
-corrplot(cor((data_grp_mfr %>% select_if(is.numeric))[-1]))
-
-cor((data_grp_mfr %>% select_if(is.numeric))[-1])
+changed_data[changed_data$name=="100%_Natural_Bran",]$carbo
+changed_data[changed_data$name=="100%_Natural_Bran",]$carbo <- 15
+data.frame(data, predicted_rating=predict(model, changed_data))[changed_data$name=="100%_Natural_Bran",]
