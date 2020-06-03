@@ -76,7 +76,6 @@ data <- get_data()
 describe(data)
 
 # 2. Density Chart for Calorie
-density(data$calories)
 plot(density(data$calories), ylab = "Probabilty Density", xlab = "Calories")
 
 # 3. Top 10 Cerials that are rating high
