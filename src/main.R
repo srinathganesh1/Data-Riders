@@ -6,7 +6,7 @@ setwd(project_dir)
 # Setup Packages
 load_packages <- function () {
   # Imports
-  packages <- c("VIM", "dplyr", "plotly", "psych", "corrplot", "cluster", "factoextra")
+  packages <- c("VIM", "dplyr", "plotly", "psych", "corrplot", "cluster", "factoextra", "VIM", "tm", "RColorBrewer", "wordcloud2")
   installed_packages <- packages %in% rownames(installed.packages())
   if (any(installed_packages == FALSE)) {
     install.packages(packages[!installed_packages])
@@ -25,9 +25,7 @@ read_file <- function () {
 # Handle missing values
 handle_missing_values <- function (input) {
   output <- input
-  # any handling of missing values
-  output <- na.omit(output)
-  # TODO KNN
+  output <- kNN(output)
   return (output)
 }
 
@@ -68,25 +66,25 @@ get_data <- function () {
 }
 
 data <- get_data()
+data
 
 # ---------------------------------
 # Evaluate all 16 variables one by one through concepts of sample statistics and build your
 #understanding and observe interesting findings
 # 1. Describe
-describe(data)
+describe(data %>% select_if(is.numeric))
 
 # 2. Density Chart for Calorie
-plot(density(data$calories), ylab = "Probabilty Density", xlab = "Calories")
+skewness <- round(skew(data$calories), 2)
+plot(density(data$calories), ylab = "Probabilty Density", xlab = "Calories", main=paste("Density Chart for Calorie   |   Skewness: ", skewness))
 
-# 3. Top 10 Cerials that are rating high
+# 3. Top 10 Cereals (by Rating)
 d <- data %>% arrange(rating) %>% head(10) %>% select(name, rating)
-ggplot(data=d, aes(x=name, y=rating)) + geom_bar(stat = "identity")
+ggplot(data=d, aes(x=name, y=rating)) + geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 90)) + labs(y="Ratings", x="Products")
 
 # 4. Calories and Cups
-cor.test(data$calories, data$weight)
-plot(data$calories, data$weight)
-# abline(lm(calories~weight,data=data), col='blue')
-# TODO add liner model line
+plot(data$calories, data$cups, pch = 19, xlab = "Cups", ylab = "Calories", main = "Calories and Cups")
+abline(lm(cups ~ calories, data=data), col="red")
 
 # 5. Correlation View of Variables
 data_grp_mfr <- data %>%
@@ -96,10 +94,12 @@ corrplot(cor_result)
 heatmap(cor_result)
 
 # 6. Distribution of Cups Per Serving
-data %>% ggplot(aes(x = weight, fill = mfr_names)) + geom_histogram() + scale_fill_brewer(palette = "Set5") +
-    scale_x_continuous(name = "Weight (in ounces)", expand = c(0,0)) +
-    labs(fill = "Manufacturer", title = "Distribution of Weight per Serving", subtitle = "different weights for servings") +
-    theme_classic()
+data %>% ggplot(aes(x = cups, fill = mfr_names)) +
+        geom_histogram() + scale_fill_brewer(palette = "Spectral") +
+        scale_x_continuous(name = "# of Cups", expand = c(0,0)) +
+        labs(fill = "Manufacturer", title = "Distribution of cups per Serving",
+             subtitle = "different cups for servings", y="# of Products") +
+        theme_classic() + scale_fill_brewer(palette="Dark2")
 
 # 7. Distribution of cups per Serving
 data %>% ggplot(aes(x = cups, fill = mfr)) + geom_histogram() + scale_fill_brewer(palette = "Spectral") + scale_x_continuous(name = "no of cups", expand = c(0,0)) + labs(fill = "Manufacturer", title = "Distribution of cups per Serving", subtitle = "different cups for servings") + theme_classic()
@@ -121,9 +121,21 @@ data_grp_mfr %>% plot_ly(y= ~calories, x= ~mfr_names_factor, type = "box", color
   layout(title="Product Consistency (by Calories)", xaxis=list(title="Manufactures"), yaxis=list(title="Calories"))
 
 # 12. Word Cloud
+get_file_content <- function () {
+  txt <- readLines("data/health.txt")
+  txt <- paste(txt, collapse = " ")
+  txt <- tolower(txt)
+  txt <- gsub("[^a-zA-Z]", " ", txt)
+  txt <- gsub("\\s+", " ", txt)
+  txt <- removeWords(txt, stopwords())
+  words <- strsplit(txt, " ")
+  word_freq <- table(words)
+  return (word_freq)
+}
+word_freq <- get_file_content()
+wordcloud2(word_freq, size=10)
 
 # 13. Cluster
-# TODO cluster layout does not match
 cluster_data <- data %>% select(calories, rating, protein, fat)
 km.res <- kmeans(cluster_data, 5, nstart = 25)
 fviz_cluster(km.res, data=cluster_data, palette = "jco", ggtheme = theme_minimal())
