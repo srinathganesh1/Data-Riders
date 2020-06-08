@@ -1,5 +1,5 @@
 ---
-title: "Data Riders Notebook"
+title: "Data Riders: EDA Mini-Project"
 output:
   html_notebook:
     code_folding: hide
@@ -48,7 +48,7 @@ setwd(project_dir)
 # Setup Packages
 load_packages <- function () {
   # Imports
-  packages <- c("VIM", "dplyr", "plotly", "psych", "corrplot", "cluster", "factoextra", "psych")
+  packages <- c("VIM", "dplyr", "plotly", "psych", "corrplot", "cluster", "factoextra", "psych", "tm", "wordcloud2")
   installed_packages <- packages %in% rownames(installed.packages())
   if (any(installed_packages == FALSE)) {
     install.packages(packages[!installed_packages])
@@ -113,7 +113,7 @@ data_grp_mfr <- data %>% group_by(mfr_names_factor)
 
 <!-- ---------- ---------- ---------- ---------- -->
 <div class="container-part">
-<h2>Part #: Understanding Variables</h1>
+<h2>Part 1: Understanding Variables</h1>
 
 <h5>Overall View</h5>
 
@@ -141,6 +141,20 @@ draw_density_plot(data$calories, "Calories")
 <h5>Distribution of Ratings (for the Products)</h5>
 ```{r}
 draw_density_plot(data$rating, "Rating")
+```
+
+</div>
+
+<!-- ---------- ---------- ---------- ---------- -->
+<div class="container-part">
+<h2>Part 2: Data Insights</h1>
+
+<h5>Distribution of Rating vs Calorie Category</h5>
+```{r}
+data %>% ggplot(aes(x = rating, fill = calories_category)) + geom_histogram() + scale_fill_brewer(palette = "Set1") +
+        scale_x_continuous(name = "Ratings", expand = c(0,0)) +
+        labs(fill = " Cal ", y ='Count', title = "Distribution of Rating vs Calorie Category", subtitle = "Higher the calories, Lower is the Rating") +
+        theme_classic()
 ```
 
 <h5>Relationship of one variable with another</h5>
@@ -201,50 +215,36 @@ ggplot(data=d, aes(x=name, y=rating)) + geom_bar(stat = "identity") +
 
 <!-- ---------- ---------- ---------- ---------- -->
 <div class="container-part">
-<h2>Part #: </h1>
-Company wise Rating Consistency
+<h2>Part 3: Analysis by company</h1>
 
 ```{r out.width="100%"}
 data_grp_mfr %>% plot_ly(y= ~rating, x= ~mfr_names_factor, type = "box", color= ~mfr_names_factor) %>%
-  layout(title="Product Consistency", xaxis=list(title="Manufactures"), yaxis=list(title="Rating"))
-```
-
-Company wise Calorie Consistency
-```{r out.width="100%"}
-data_grp_mfr %>% plot_ly(y= ~calories, x= ~mfr_names_factor, type = "box", color= ~mfr_names_factor) %>%
-  layout(title="Product Consistency (by Calories)", xaxis=list(title="Manufactures"), yaxis=list(title="Calories"))
+  layout(title="Company wise Rating Consistency", xaxis=list(title="Manufactures"), yaxis=list(title="Rating"))
 ```
 </div>
 
 <div class="container-part">
-<h2>Part #: </h1>
-
-Distribution of Rating vs Calorie Category
-```{r}
-data %>% ggplot(aes(x = rating, fill = calories_category)) + geom_histogram() + scale_fill_brewer(palette = "Set1") +
-        scale_x_continuous(name = "Ratings", expand = c(0,0)) +
-        labs(fill = " Cal ", y ='Count', title = "Distribution of Rating vs Calorie Category", subtitle = "Low rating for High calories") +
-        theme_classic()
-```
+<h2>Part 4: Overall Picture</h1>
 
 Word Cloud (error in markdown)
 ```{r}
 #get_file_content <- function () {
-#  txt <- readLines("data/health.txt")
-#  txt <- paste(txt, collapse = " ")
-#  txt <- tolower(txt)
-#  txt <- gsub("[^a-zA-Z]", " ", txt)
-#  txt <- gsub("\\s+", " ", txt)
-#  txt <- removeWords(txt, stopwords())
-#  words <- strsplit(txt, " ")
-#  word_freq <- table(words)
-#  return (word_freq)
+  #txt <- readLines("data/health.txt")
+  #txt <- paste(txt, collapse = " ")
+  #txt <- tolower(txt)
+  #txt <- gsub("[^a-zA-Z]", " ", txt)
+  #txt <- gsub("\\s+", " ", txt)
+  #txt <- removeWords(txt, stopwords())
+  #words <- strsplit(txt, " ")
+  #word_freq <- table(words)
+  #return (word_freq)
 #}
 #word_freq <- get_file_content()
+#word_freq
 #wordcloud2(word_freq, size=10)
 ```
 
-Cluster Analysis
+<h5>Feature Based Grouping (Clusters)</h5>
 ```{r}
 cluster_data <- data %>% select(calories, rating, protein, fat) %>% scale
 row.names(cluster_data) <- data[,1]
