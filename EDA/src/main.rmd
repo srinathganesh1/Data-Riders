@@ -1,0 +1,255 @@
+---
+title: "Data Riders Notebook"
+output:
+  html_notebook:
+    code_folding: hide
+---
+
+<style type="text/css">
+
+h5 {
+    background: rgba(108, 108, 108, 0.35);
+    border-top: 1px solid #848484;
+    border-bottom: 1px solid #848484;
+    margin-top: 0px;
+    padding: 10px 10px;
+    font-weight: bold;
+}
+h5:hover {
+  background: #ffeb3b;
+}
+
+h2 {
+  background: #212121;
+  color: white;
+  padding: 8px 8px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.container-part {
+  border: 1px solid #a2a2a2;
+  margin-bottom: 35px;
+}
+
+.main-container {
+  max-width: 1300px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+```{r}
+# Each team member would need to set their directory path to variable "project_dir"
+# we will make sure everything else is relative to "project_dir"
+project_dir <- "/home/admin-12/Documents/IMARTICUS/Data-Riders/EDA"
+setwd(project_dir)
+
+# Setup Packages
+load_packages <- function () {
+  # Imports
+  packages <- c("VIM", "dplyr", "plotly", "psych", "corrplot", "cluster", "factoextra", "psych")
+  installed_packages <- packages %in% rownames(installed.packages())
+  if (any(installed_packages == FALSE)) {
+    install.packages(packages[!installed_packages])
+  }
+  # Packages loading with suppressed messages
+  suppressMessages(invisible(lapply(packages, library, character.only = TRUE)))
+}
+load_packages()
+
+# Get the Raw Data from the file
+read_file <- function () {
+  data <- read.csv("data/cereals_data.csv")
+  return (data)
+}
+
+# Handle missing values
+handle_missing_values <- function (input) {
+  output <- input
+  output <- kNN(output)
+  return (output)
+}
+
+# Clearn the data to make it good for processing
+# eg. delete unwanted rows, change data types etc
+data_processing <- function (input) {
+  output <- input
+  output <- handle_missing_values(output)
+
+  # Set company names
+  output$mfr_names <- as.character(output$mfr)
+  output$mfr_names[output$mfr_names=="A"] <- "American Home Food Products"
+  output$mfr_names[output$mfr_names=="G"] <- "General Mills"
+  output$mfr_names[output$mfr_names=="K"] <- "Kelloggs"
+  output$mfr_names[output$mfr_names=="N"] <- "Nabisco"
+  output$mfr_names[output$mfr_names=="P"] <- "Post"
+  output$mfr_names[output$mfr_names=="Q"] <- "Quaker Oats"
+  output$mfr_names[output$mfr_names=="R"] <- "Ralston Purina"
+  output$mfr_names_factor = as.factor(output$mfr_names)
+
+  # Calorie Categories
+  output <- within(output, {
+    calories_category <- NA
+    calories_category[calories>=50&calories<80] <- "L"
+    calories_category[calories>=80&calories<110] <- "M"
+    calories_category[calories>=110] <- "H"
+  })
+
+  # some data processing steps that would be required
+  return (output)
+}
+
+# Get the Data Frame for the data
+get_data <- function () {
+  raw <- read_file()
+  data <- data_processing(raw)
+  return (data)
+}
+
+data <- get_data()
+data_grp_mfr <- data %>% group_by(mfr_names_factor)
+```
+
+<!-- ---------- ---------- ---------- ---------- -->
+<div class="container-part">
+<h2>Part #: Understanding Variables</h1>
+
+<h5>Overall View</h5>
+
+```{r echo=FALSE, warning=FALSE}
+describe(data %>% select_if(is.numeric))
+```
+
+```{r}
+draw_density_plot <- function (value_set, xlab) {
+  skewness <- round(skew(value_set), 2)
+  mean <- round(mean(value_set), 2)
+  median <- round(median(value_set), 2)
+  title <- paste(xlab, "Density Chart   |  ", "Skewness:", skewness)
+  plot(density(value_set), ylab = "Probabilty Density", xlab = xlab, main=title,)
+  abline(v=mean, col="red")
+  abline(v=median, col="blue")
+}
+```
+
+<h5>Distribution of Calories (in the Products)</h5>
+```{r}
+draw_density_plot(data$calories, "Calories")
+```
+
+<h5>Distribution of Ratings (for the Products)</h5>
+```{r}
+draw_density_plot(data$rating, "Rating")
+```
+
+<h5>Relationship of one variable with another</h5>
+```{r}
+cor_result <- cor((data_grp_mfr %>% select_if(is.numeric))[-1])
+corrplot(cor_result)
+heatmap(cor_result)
+```
+
+```{r}
+good_bad_corr <- function (cor_result_filter) {
+  #cor_result_filter <-
+  cor_result_filter_names <- names(cor_result_filter)
+  names(cor_result_filter) <- NULL
+  cor_result_df <- data.frame(cor_result_filter_names, cor_result_filter) %>% arrange(cor_result_filter)
+  names(cor_result_df) <- c("Parameters", "Corellation")
+  ggplot(cor_result_df, aes(x=Parameters, y=Corellation)) + geom_bar(stat = "identity") +
+          theme(axis.text.x=element_text(colour="black"), axis.text.y=element_text(colour="black"))
+}
+```
+
+<h5>Influencers for Ratings</h5>
+```{r}
+good_bad_corr(cor_result["rating",])
+```
+
+<h5>Influencers for Calories</h5>
+```{r}
+good_bad_corr(cor_result["calories",])
+```
+
+<h5>Whats you get in one Serving</h5>
+```{r}
+data %>% ggplot(aes(x = cups, fill = mfr_names)) +
+        geom_histogram() +
+        scale_x_continuous(name = "# of Cups", expand = c(0,0)) +
+        labs(fill = "Manufacturer", title = "Distribution of cups per Serving",
+             subtitle = "different cups for servings", y="# of Products") +
+        theme_classic() + scale_fill_brewer(palette="Dark2")
+```
+
+```{r}
+data %>% ggplot(aes(x = weight, fill = mfr_names)) + geom_histogram() +
+    scale_x_continuous(name = "Weight (in ounces)", expand = c(0,0)) +
+    labs(fill = "Manufacturer", title = "Distribution of Weight per Serving", subtitle = "Weight per serving") +
+    theme_classic() + scale_fill_brewer(palette="Dark2")
+```
+
+<h5>Best in the Market</h5>
+```{r}
+d <- data %>% arrange(rating) %>% head(4) %>% select(name, rating)
+ggplot(data=d, aes(x=name, y=rating)) + geom_bar(stat = "identity") +
+        labs(y="Ratings") + scale_fill_brewer(palette="Dark2") +
+        theme(axis.text.x=element_text(colour="black"), axis.text.y=element_text(colour="black"))
+```
+
+</div>
+
+<!-- ---------- ---------- ---------- ---------- -->
+<div class="container-part">
+<h2>Part #: </h1>
+Company wise Rating Consistency
+
+```{r out.width="100%"}
+data_grp_mfr %>% plot_ly(y= ~rating, x= ~mfr_names_factor, type = "box", color= ~mfr_names_factor) %>%
+  layout(title="Product Consistency", xaxis=list(title="Manufactures"), yaxis=list(title="Rating"))
+```
+
+Company wise Calorie Consistency
+```{r out.width="100%"}
+data_grp_mfr %>% plot_ly(y= ~calories, x= ~mfr_names_factor, type = "box", color= ~mfr_names_factor) %>%
+  layout(title="Product Consistency (by Calories)", xaxis=list(title="Manufactures"), yaxis=list(title="Calories"))
+```
+</div>
+
+<div class="container-part">
+<h2>Part #: </h1>
+
+Distribution of Rating vs Calorie Category
+```{r}
+data %>% ggplot(aes(x = rating, fill = calories_category)) + geom_histogram() + scale_fill_brewer(palette = "Set1") +
+        scale_x_continuous(name = "Ratings", expand = c(0,0)) +
+        labs(fill = " Cal ", y ='Count', title = "Distribution of Rating vs Calorie Category", subtitle = "Low rating for High calories") +
+        theme_classic()
+```
+
+Word Cloud (error in markdown)
+```{r}
+#get_file_content <- function () {
+#  txt <- readLines("data/health.txt")
+#  txt <- paste(txt, collapse = " ")
+#  txt <- tolower(txt)
+#  txt <- gsub("[^a-zA-Z]", " ", txt)
+#  txt <- gsub("\\s+", " ", txt)
+#  txt <- removeWords(txt, stopwords())
+#  words <- strsplit(txt, " ")
+#  word_freq <- table(words)
+#  return (word_freq)
+#}
+#word_freq <- get_file_content()
+#wordcloud2(word_freq, size=10)
+```
+
+Cluster Analysis
+```{r}
+cluster_data <- data %>% select(calories, rating, protein, fat) %>% scale
+row.names(cluster_data) <- data[,1]
+km.res <- kmeans(cluster_data, 5, nstart = 25)
+fviz_cluster(km.res, data=cluster_data, palette = "jco", ggtheme = theme_minimal())
+```
+
+
