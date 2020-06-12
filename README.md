@@ -93,7 +93,7 @@ PPT Slides
 4. Word Cloud
 5. List of Good and Bad parameters (for Ratings)
 6. Correlation Charts. self-life and rating
-7. 
+7. Rating Consistency
 8. 
 
 

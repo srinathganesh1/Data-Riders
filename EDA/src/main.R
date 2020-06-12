@@ -122,7 +122,7 @@ data_grp_mfr %>% plot_ly(y= ~calories, x= ~mfr_names_factor, type = "box", color
 
 # 12. Word Cloud
 get_file_content <- function () {
-  txt <- readLines("../../data/health.txt")
+  txt <- readLines("data/health.txt")
   txt <- paste(txt, collapse = " ")
   txt <- tolower(txt)
   txt <- gsub("[^a-zA-Z]", " ", txt)
@@ -136,9 +136,10 @@ word_freq <- get_file_content()
 wordcloud2(word_freq, size=10)
 
 # 13. Cluster
-cluster_data <- data %>% select(calories, rating, protein, fat)
+cluster_data <- data %>% select(calories, rating, protein, fat) %>% scale
+row.names(cluster_data) <- data[,1]
 km.res <- kmeans(cluster_data, 5, nstart = 25)
-fviz_cluster(km.res, data=cluster_data, palette = "jco", ggtheme = theme_minimal())
+fviz_cluster(km.res, data=cluster_data, palette = "Light1", ggtheme = theme_minimal())
 
 # 14. Good and Bad parameters for rating
 cor_result_rating <- cor_result["rating",]
@@ -156,3 +157,9 @@ changed_data <- data
 changed_data[changed_data$name=="100%_Natural_Bran",]$carbo
 changed_data[changed_data$name=="100%_Natural_Bran",]$carbo <- 15
 data.frame(data, predicted_rating=predict(model, changed_data))[changed_data$name=="100%_Natural_Bran",]
+
+
+data %>% ggplot(aes(x = weight, fill = mfr_names)) + geom_histogram() +
+    scale_x_continuous(name = "Weight (in ounces)", expand = c(0,0)) +
+    labs(fill = "Manufacturer", title = "Distribution of Weight per Serving", subtitle = "Weight per serving") +
+    theme_classic() + scale_fill_brewer(palette="Dark2")

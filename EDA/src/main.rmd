@@ -191,7 +191,7 @@ good_bad_corr(cor_result["calories",])
 data %>% ggplot(aes(x = cups, fill = mfr_names)) +
         geom_histogram() +
         scale_x_continuous(name = "# of Cups", expand = c(0,0)) +
-        labs(fill = "Manufacturer", title = "Distribution of cups per Serving",
+        labs(fill = "Manufacturer", title = "Distribution of Cups per Serving",
              subtitle = "different cups for servings", y="# of Products") +
         theme_classic() + scale_fill_brewer(palette="Dark2")
 ```
