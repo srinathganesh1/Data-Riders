@@ -226,22 +226,20 @@ data_grp_mfr %>% plot_ly(y= ~rating, x= ~mfr_names_factor, type = "box", color= 
 <div class="container-part">
 <h2>Part 4: Overall Picture</h1>
 
-Word Cloud (error in markdown)
 ```{r}
-#get_file_content <- function () {
-  #txt <- readLines("data/health.txt")
-  #txt <- paste(txt, collapse = " ")
-  #txt <- tolower(txt)
-  #txt <- gsub("[^a-zA-Z]", " ", txt)
-  #txt <- gsub("\\s+", " ", txt)
-  #txt <- removeWords(txt, stopwords())
-  #words <- strsplit(txt, " ")
-  #word_freq <- table(words)
-  #return (word_freq)
-#}
-#word_freq <- get_file_content()
-#word_freq
-#wordcloud2(word_freq, size=10)
+get_file_content <- function () {
+  txt <- readLines("/home/admin-12/Documents/IMARTICUS/Data-Riders/EDA/data/health.txt")
+  txt <- paste(txt, collapse = " ")
+  txt <- tolower(txt)
+  txt <- gsub("[^a-zA-Z]", " ", txt)
+  txt <- gsub("\\s+", " ", txt)
+  txt <- removeWords(txt, stopwords())
+  words <- strsplit(txt, " ")
+  word_freq <- table(words)
+  return (word_freq)
+}
+word_freq <- get_file_content()
+wordcloud2(word_freq, shape="star", size=10)
 ```
 
 <h5>Feature Based Grouping (Clusters)</h5>

@@ -122,7 +122,7 @@ data_grp_mfr %>% plot_ly(y= ~calories, x= ~mfr_names_factor, type = "box", color
 
 # 12. Word Cloud
 get_file_content <- function () {
-  txt <- readLines("data/health.txt")
+  txt <- readLines("/home/admin-12/Documents/IMARTICUS/Data-Riders/EDA/data/health.txt")
   txt <- paste(txt, collapse = " ")
   txt <- tolower(txt)
   txt <- gsub("[^a-zA-Z]", " ", txt)
@@ -133,7 +133,7 @@ get_file_content <- function () {
   return (word_freq)
 }
 word_freq <- get_file_content()
-wordcloud2(word_freq, size=10)
+wordcloud2(word_freq, shape="star", size=10)
 
 # 13. Cluster
 cluster_data <- data %>% select(calories, rating, protein, fat) %>% scale
