@@ -22,6 +22,8 @@ read_file <- function () {
   return (data)
 }
 
+View(data)
+
 # Handle missing values
 handle_missing_values <- function (input) {
   output <- input
@@ -137,7 +139,8 @@ wordcloud2(word_freq, shape="star", size=10)
 
 # 13. Cluster
 cluster_data <- data %>% select(calories, rating, protein, fat) %>% scale
-row.names(cluster_data) <- data[,1]
+names(data)
+row.names(cluster_data) <- paste0(data[, 1], " (", round(data[, 16]), ")")
 km.res <- kmeans(cluster_data, 5, nstart = 25)
 fviz_cluster(km.res, data=cluster_data, palette = "Light1", ggtheme = theme_minimal())
 
