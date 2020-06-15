@@ -6,7 +6,7 @@ setwd(project_dir)
 # Setup Packages
 load_packages <- function () {
   # Imports
-  packages <- c("dplyr", "psych")
+  packages <- c("psych", "dummies", "dplyr", "car")
   installed_packages <- packages %in% rownames(installed.packages())
   if (any(installed_packages == FALSE)) {
     install.packages(packages[!installed_packages])
@@ -94,14 +94,36 @@ handle_missing_values <- function (input) {
   return (output)
 }
 
+# Inverse of is.factor function
+not_factor <- function (obj) {
+  return (!is.factor(obj))
+}
+
+# Do the data processing for categorical data
+process_categorical_data <- function (data) {
+  return (dummy.data.frame(data, sep = "#"))
+}
+
 # Clearn the data to make it good for processing
 # eg. delete unwanted rows, change data types etc
 data_processing <- function (input) {
-  output <- input
-  output <- handle_missing_values(output)
+  pre_processed_data <- input
+  pre_processed_data <- handle_missing_values(pre_processed_data)
 
-  # some data processing steps that would be required
-  return (output)
+  # Continous Data
+  continous_data <- pre_processed_data %>% select_if(not_factor)
+
+  # Categorical Data
+  categorical_data <- pre_processed_data %>% select_if(is.factor)
+  categorical_data <- process_categorical_data(categorical_data)
+
+  result <- NA
+  result$raw <- pre_processed_data
+  result$categorical <- categorical_data
+  result$continous <- continous_data
+  result$data <- data.frame(categorical_data, continous_data)
+
+  return (result)
 }
 
 # Get the Data Frame for the data
@@ -111,5 +133,40 @@ get_data <- function (file) {
   return (data)
 }
 
-data <- get_data("data/Property_Price_Train.csv")
-summary(data)
+# Optimise the linear model
+do_liner_model <- function (dependent_var_name, data, vif_threashold, max_iterations) {
+  independent_vars <- names(data)[names(data) != dependent_var_name]
+  model <- NA
+
+  for (i in 1:max_iterations) {
+    # Variables for linear model
+    model_formula <- paste0(paste0(dependent_var_name, "~"), paste(independent_vars, collapse = "+"))
+    model <- lm(model_formula, data=data)
+    summary_model <- summary(model)
+
+    # Fetch Records to Scan P values
+    coeff_mode <- data.frame(summary_model$coefficients)
+    coeff_mode <- cbind(rownames(coeff_mode), coeff_mode)
+
+    # Good Predictors based on P Value
+    good_predictors <- coeff_mode[, 1][coeff_mode[, 5] < 0.05]
+    good_predictors <- good_predictors[good_predictors != "(Intercept)"]
+
+    # Next Filter: Based on vif threashold
+    # TODO
+
+    # For use in next iteration
+    independent_vars <- good_predictors
+  }
+
+  return (model)
+}
+
+super_data <- get_data("data/Property_Price_Train.csv")
+data <- super_data$data
+
+options(scipen=999)  # skip e values # https://stackoverflow.com/a/25947542/1897935
+
+final_linear_model <- do_liner_model("Sale_Price", data, 7, 4)
+summary(final_linear_model)
+#sqrt(mean(residuals(final_linear_model)^2))
