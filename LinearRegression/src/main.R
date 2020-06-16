@@ -85,8 +85,11 @@ handle_missing_values <- function (input) {
   # Fireplace_Quality: quality of fireplaces - NA means No Fireplace
   output$Fireplace_Quality <- handle_factor_col_na(output$Fireplace_Quality, "NoFirePlace")
 
+  # TODO review
+  # - Lot_Extent: Linear feet of street connected to property
+  output$Lot_Extent <- handlle_col_na(output$Lot_Extent, 0)
+
   # TODO think
-  # - Lot_Extent
   # - Garage_Finish_Year
   # - Garage_Built_Year
   # - Electrical_System
@@ -139,6 +142,7 @@ do_liner_model <- function (dependent_var_name, data, vif_threashold, max_iterat
   model <- NA
 
   for (i in 1:max_iterations) {
+    print("--- Iteration ---")
     # Variables for linear model
     model_formula <- paste0(paste0(dependent_var_name, "~"), paste(independent_vars, collapse = "+"))
     model <- lm(model_formula, data=data)
@@ -151,9 +155,20 @@ do_liner_model <- function (dependent_var_name, data, vif_threashold, max_iterat
     # Good Predictors based on P Value
     good_predictors <- coeff_mode[, 1][coeff_mode[, 5] < 0.05]
     good_predictors <- good_predictors[good_predictors != "(Intercept)"]
+    print(length(good_predictors))
 
-    # Next Filter: Based on vif threashold
-    # TODO
+    # Find Coefficents with NA
+    #na_coeff <- names(coef(model))[is.na(coef(model))]
+    #print("---------------")
+    #print(good_predictors %in% na_coeff)
+
+    # Skip High VIF for next Ieration
+    if (i > 1) {
+      model_vif <- vif(model)
+      low_vif_vars <- names(model_vif)[model_vif < vif_threashold]
+      good_predictors <- good_predictors[good_predictors %in% low_vif_vars]
+      print(length(good_predictors))
+    }
 
     # For use in next iteration
     independent_vars <- good_predictors
@@ -167,6 +182,12 @@ data <- super_data$data
 
 options(scipen=999)  # skip e values # https://stackoverflow.com/a/25947542/1897935
 
-final_linear_model <- do_liner_model("Sale_Price", data, 7, 4)
+final_linear_model <- do_liner_model("Sale_Price", data, 10, 1)
 summary(final_linear_model)
-#sqrt(mean(residuals(final_linear_model)^2))
+sqrt(mean(residuals(final_linear_model)^2))
+
+# area is negative
+# - Enclosed_Lobby_Area
+# - Open_Lobby_Area
+# - W_Deck_Area
+# - Garage_Area
