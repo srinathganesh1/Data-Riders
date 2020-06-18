@@ -6,7 +6,7 @@ setwd(project_dir)
 # Setup Packages
 load_packages <- function () {
   # Imports
-  packages <- c("psych", "dummies", "dplyr", "car")
+  packages <- c("psych", "dummies", "dplyr", "car", "ggplot2")
   installed_packages <- packages %in% rownames(installed.packages())
   if (any(installed_packages == FALSE)) {
     install.packages(packages[!installed_packages])
@@ -104,7 +104,31 @@ not_factor <- function (obj) {
 
 # Do the data processing for categorical data
 process_categorical_data <- function (data) {
-  return (dummy.data.frame(data, sep = "#"))
+  data <- dummy.data.frame(data, sep = "#")
+  data <- optimise_categorical_variables(data)
+  return (data)
+}
+
+# Optimize Categorical Variables
+optimise_categorical_variables <- function (data) {
+  return (data)
+}
+
+# Do the processing for continous data
+process_continous_data <- function (data) {
+  # Normalise the data
+  print(class(data))
+  data <- as.data.frame(scale(data))
+  print(class(data))
+
+  # Consolidate Variables
+  data$HArea <- data$First_Floor_Area + data$Second_Floor_Area
+  data <- select(data, -c(First_Floor_Area, Second_Floor_Area))
+
+  data$BsmtFinSF <- data$BsmtFinSF1 + data$BsmtFinSF2
+  data <- select(data, -c(BsmtFinSF1, BsmtFinSF2))
+
+  return (data)
 }
 
 # Clearn the data to make it good for processing
@@ -115,6 +139,7 @@ data_processing <- function (input) {
 
   # Continous Data
   continous_data <- pre_processed_data %>% select_if(not_factor)
+  continous_data <- process_continous_data(continous_data)
 
   # Categorical Data
   categorical_data <- pre_processed_data %>% select_if(is.factor)
@@ -122,8 +147,6 @@ data_processing <- function (input) {
 
   result <- NA
   result$raw <- pre_processed_data
-  result$categorical <- categorical_data
-  result$continous <- continous_data
   result$data <- data.frame(categorical_data, continous_data)
 
   return (result)
@@ -137,7 +160,7 @@ get_data <- function (file) {
 }
 
 # Optimise the linear model
-do_liner_model <- function (dependent_var_name, data, vif_threashold, max_iterations) {
+do_liner_model <- function (dependent_var_name, data, vif_threashold, max_iterations, pvalue_threashold) {
   independent_vars <- names(data)[names(data) != dependent_var_name]
   model <- NA
 
@@ -145,6 +168,8 @@ do_liner_model <- function (dependent_var_name, data, vif_threashold, max_iterat
     print("--- Iteration ---")
     # Variables for linear model
     model_formula <- paste0(paste0(dependent_var_name, "~"), paste(independent_vars, collapse = "+"))
+    print(model_formula)
+    print(length(independent_vars))
     model <- lm(model_formula, data=data)
     summary_model <- summary(model)
 
@@ -153,9 +178,8 @@ do_liner_model <- function (dependent_var_name, data, vif_threashold, max_iterat
     coeff_mode <- cbind(rownames(coeff_mode), coeff_mode)
 
     # Good Predictors based on P Value
-    good_predictors <- coeff_mode[, 1][coeff_mode[, 5] < 0.05]
+    good_predictors <- coeff_mode[, 1][coeff_mode[, 5] < pvalue_threashold]
     good_predictors <- good_predictors[good_predictors != "(Intercept)"]
-    print(length(good_predictors))
 
     # Find Coefficents with NA
     #na_coeff <- names(coef(model))[is.na(coef(model))]
@@ -167,7 +191,6 @@ do_liner_model <- function (dependent_var_name, data, vif_threashold, max_iterat
       model_vif <- vif(model)
       low_vif_vars <- names(model_vif)[model_vif < vif_threashold]
       good_predictors <- good_predictors[good_predictors %in% low_vif_vars]
-      print(length(good_predictors))
     }
 
     # For use in next iteration
@@ -177,17 +200,57 @@ do_liner_model <- function (dependent_var_name, data, vif_threashold, max_iterat
   return (model)
 }
 
-super_data <- get_data("data/Property_Price_Train.csv")
-data <- super_data$data
+training_super_data <- get_data("data/Property_Price_Train.csv")
+training_data <- training_super_data$data
 
 options(scipen=999)  # skip e values # https://stackoverflow.com/a/25947542/1897935
 
-final_linear_model <- do_liner_model("Sale_Price", data, 10, 1)
-summary(final_linear_model)
-sqrt(mean(residuals(final_linear_model)^2))
+model <- do_liner_model("Sale_Price", training_data, 10, 5, 0.001)
+summary(model)
+
+plot(training_data$Sale_Price, type="l", col = "red")
+par(new=TRUE)
+plot(predict(model, training_data), type="l", col = "blue")
+
+#library(plotly)
+#d <- data.frame(x=seq_along(training_data$Sale_Price), trace1=training_data$Sale_Price, trace2=predict(model, training_data))
+#fig <- plot_ly(head(d, 25), x = ~x)
+#fig <- fig %>% add_trace(y = ~trace1, name = 'Real', mode = 'lines', fill = 'tozeroy', fillcolor="rgba(255,0,0,0.5)")
+#fig <- fig %>% add_trace(y = ~trace2, name = 'Predicted', mode = 'lines', fill = 'tozeroy', fillcolor="rgba(0,0,255,0.5)")
+#fig
+
+# ----------------------------------
+t <- FALSE
+if (t) {
+  test_data <- get_data("data/Property_Price_Test.csv")$data
+  missing_col_in_test_data <- names(training_data)[!names(training_data) %in% names(test_data)]
+  missing_col_in_test_data <- missing_col_in_test_data[missing_col_in_test_data != "Sale_Price"]
+  # set missing col (dummy var) to test data
+  for (col in missing_col_in_test_data) {
+    test_data[col] <- 0
+  }
+  predict(model, training_data)
+}
+# ----------------------------------
 
 # area is negative
 # - Enclosed_Lobby_Area
 # - Open_Lobby_Area
 # - W_Deck_Area
 # - Garage_Area
+#plot(final_linear_model)
+
+plot(model)
+plot(training_data$Sale_Price)
+sqrt(mean(residuals(model)^2))
+
+if (FALSE) {
+  m1 <- "Zoning_ClassCommer+Zoning_ClassFVR+Zoning_ClassRHD+Zoning_ClassRLD+Lot_ConfigurationCulDSac+Condition2PosN+House_TypeTwnhs+Overall_Material1+Overall_Material2+Overall_Material3+Overall_Material4+Overall_Material5+Overall_Material6+Overall_Material7+House_Condition3+House_Condition4+House_Condition5+House_Condition6+Roof_QualityCT+BsmtFinType1GLQ+Heating_TypeGrav+Heating_QualityEx+Air_ConditioningN+Kitchen_QualityEx+Functional_RateMajD2+Functional_RateSD+Garage2Types+Lot_Size+Remodel_Year+Underground_Full_Bathroom+Full_Bathroom_Above_Grade+Half_Bathroom_Above_Grade+Kitchen_Above_Grade+Garage_Size+Screen_Lobby_Area"
+  m1_v <- as.vector(strsplit(m1, "\\+"))
+  m1_v
+
+  m2 <- "Neighborhood.StoneBr+Condition2.PosN+Roof_Quality.CT+Kitchen_Quality.Ex+Lot_Size+Overall_Material+House_Condition+Construction_Year+Brick_Veneer_Area+BsmtUnfSF+Total_Basement_Area+Grade_Living_Area+Garage_Size"
+  m2_v <- as.vector(strsplit(m2, "\\+"))
+  m2_v
+}
+
