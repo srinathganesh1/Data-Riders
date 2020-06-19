@@ -118,12 +118,12 @@ optimise_categorical_variables <- function (data) {
 process_continous_data <- function (data) {
   # Normalise the data
   #data <- as.data.frame(scale(data))
-  #data <- log(data)
+  data$Lot_Size <- log(data$Lot_Size)
+  data$Sale_Price <- log(data$Sale_Price)
 
   # Consolidate Variables
   #data$HArea <- data$First_Floor_Area + data$Second_Floor_Area
   #data <- select(data, -c(First_Floor_Area, Second_Floor_Area))
-  #
   #data$BsmtFinSF <- data$BsmtFinSF1 + data$BsmtFinSF2
   #data <- select(data, -c(BsmtFinSF1, BsmtFinSF2))
 
@@ -204,8 +204,18 @@ training_data <- training_super_data$data
 
 options(scipen=999)  # skip e values # https://stackoverflow.com/a/25947542/1897935
 
-model <- do_liner_model("Sale_Price", training_data, 5, 5, 0.001)
+model <- do_liner_model("Sale_Price", training_data, 10, 5, 0.05)
 summary(model)
+
+f <- 100000
+plot(training_super_data$raw$Sale_Price, exp(predict(model, training_data)), xlim = c(1, 9*f), ylim = c(1, 9*f))
+abline(v=2*f, h=2*f, col="blue")
+abline(v=4*f, h=4*f, col="brown")
+abline(v=6*f, h=6*f, col="green")
+abline(v=8*f, h=8*f, col="red")
+
+#saveRDS(model, file="a.rda")
+#model <- readRDS("a.rda")
 
 #plot(training_data$Sale_Price, type="l", col = "red")
 #par(new=TRUE)
@@ -240,7 +250,6 @@ if (t) {
 #plot(final_linear_model)
 
 plot(model)
-plot(training_data$Sale_Price)
 sqrt(mean(residuals(model)^2))
 
 if (FALSE) {
