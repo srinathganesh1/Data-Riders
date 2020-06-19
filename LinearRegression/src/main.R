@@ -90,7 +90,7 @@ handle_missing_values <- function (input) {
   output$Lot_Extent <- handlle_col_na(output$Lot_Extent, 0)
 
   # TODO think
-  # - Garage_Finish_Year
+  # - Garage_Finish_Year # TODO rename variable
   # - Garage_Built_Year
   # - Electrical_System
 
@@ -117,16 +117,15 @@ optimise_categorical_variables <- function (data) {
 # Do the processing for continous data
 process_continous_data <- function (data) {
   # Normalise the data
-  print(class(data))
-  data <- as.data.frame(scale(data))
-  print(class(data))
+  #data <- as.data.frame(scale(data))
+  #data <- log(data)
 
   # Consolidate Variables
-  data$HArea <- data$First_Floor_Area + data$Second_Floor_Area
-  data <- select(data, -c(First_Floor_Area, Second_Floor_Area))
-
-  data$BsmtFinSF <- data$BsmtFinSF1 + data$BsmtFinSF2
-  data <- select(data, -c(BsmtFinSF1, BsmtFinSF2))
+  #data$HArea <- data$First_Floor_Area + data$Second_Floor_Area
+  #data <- select(data, -c(First_Floor_Area, Second_Floor_Area))
+  #
+  #data$BsmtFinSF <- data$BsmtFinSF1 + data$BsmtFinSF2
+  #data <- select(data, -c(BsmtFinSF1, BsmtFinSF2))
 
   return (data)
 }
@@ -205,12 +204,12 @@ training_data <- training_super_data$data
 
 options(scipen=999)  # skip e values # https://stackoverflow.com/a/25947542/1897935
 
-model <- do_liner_model("Sale_Price", training_data, 10, 5, 0.001)
+model <- do_liner_model("Sale_Price", training_data, 5, 5, 0.001)
 summary(model)
 
-plot(training_data$Sale_Price, type="l", col = "red")
-par(new=TRUE)
-plot(predict(model, training_data), type="l", col = "blue")
+#plot(training_data$Sale_Price, type="l", col = "red")
+#par(new=TRUE)
+#plot(predict(model, training_data), type="l", col = "blue")
 
 #library(plotly)
 #d <- data.frame(x=seq_along(training_data$Sale_Price), trace1=training_data$Sale_Price, trace2=predict(model, training_data))
