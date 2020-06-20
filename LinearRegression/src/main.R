@@ -262,3 +262,17 @@ if (FALSE) {
   m2_v
 }
 
+#a <- readRDS("one.rds")
+#b <- readRDS("two.rds")
+#c <- readRDS("three.rds")
+#
+#setdiff(a, b)
+#setdiff(b, a)
+#
+#setdiff(b, c)
+#setdiff(c, b)
+#
+#setdiff(c, a)
+#setdiff(a, c)
+#
+#setdiff(setdiff(a, b), setdiff(b, c))
