@@ -1,8 +1,3 @@
-# Each team member would need to set their directory path to variable "project_dir"
-# we will make sure everything else is relative to "project_dir"
-project_dir <- "/home/admin-12/Documents/IMARTICUS/Data-Riders/LinearRegression"
-setwd(project_dir)
-
 # Setup Packages
 load_packages <- function () {
   # Imports
@@ -164,11 +159,8 @@ do_liner_model <- function (dependent_var_name, data, vif_threashold, max_iterat
   model <- NA
 
   for (i in 1:max_iterations) {
-    print("--- Iteration ---")
     # Variables for linear model
     model_formula <- paste0(paste0(dependent_var_name, "~"), paste(independent_vars, collapse = "+"))
-    print(model_formula)
-    print(length(independent_vars))
     model <- lm(model_formula, data=data)
     summary_model <- summary(model)
 
@@ -204,15 +196,12 @@ training_data <- training_super_data$data
 
 options(scipen=999)  # skip e values # https://stackoverflow.com/a/25947542/1897935
 
-model <- do_liner_model("Sale_Price", training_data, 10, 5, 0.05)
-summary(model)
-
-f <- 100000
-plot(training_super_data$raw$Sale_Price, exp(predict(model, training_data)), xlim = c(1, 9*f), ylim = c(1, 9*f))
-abline(v=2*f, h=2*f, col="blue")
-abline(v=4*f, h=4*f, col="brown")
-abline(v=6*f, h=6*f, col="green")
-abline(v=8*f, h=8*f, col="red")
+#f <- 100000
+#plot(training_super_data$raw$Sale_Price, exp(predict(model, training_data)), xlim = c(1, 9*f), ylim = c(1, 9*f))
+#abline(v=2*f, h=2*f, col="blue")
+#abline(v=4*f, h=4*f, col="brown")
+#abline(v=6*f, h=6*f, col="green")
+#abline(v=8*f, h=8*f, col="red")
 
 #saveRDS(model, file="a.rda")
 #model <- readRDS("a.rda")
@@ -229,17 +218,17 @@ abline(v=8*f, h=8*f, col="red")
 #fig
 
 # ----------------------------------
-t <- FALSE
-if (t) {
-  test_data <- get_data("data/Property_Price_Test.csv")$data
-  missing_col_in_test_data <- names(training_data)[!names(training_data) %in% names(test_data)]
-  missing_col_in_test_data <- missing_col_in_test_data[missing_col_in_test_data != "Sale_Price"]
-  # set missing col (dummy var) to test data
-  for (col in missing_col_in_test_data) {
-    test_data[col] <- 0
-  }
-  predict(model, training_data)
-}
+#t <- FALSE
+#if (t) {
+#  test_data <- get_data("data/Property_Price_Test.csv")$data
+#  missing_col_in_test_data <- names(training_data)[!names(training_data) %in% names(test_data)]
+#  missing_col_in_test_data <- missing_col_in_test_data[missing_col_in_test_data != "Sale_Price"]
+#  # set missing col (dummy var) to test data
+#  for (col in missing_col_in_test_data) {
+#    test_data[col] <- 0
+#  }
+#  predict(model, training_data)
+#}
 # ----------------------------------
 
 # area is negative
@@ -249,18 +238,18 @@ if (t) {
 # - Garage_Area
 #plot(final_linear_model)
 
-plot(model)
-sqrt(mean(residuals(model)^2))
+#plot(model)
+#sqrt(mean(residuals(model)^2))
 
-if (FALSE) {
-  m1 <- "Zoning_ClassCommer+Zoning_ClassFVR+Zoning_ClassRHD+Zoning_ClassRLD+Lot_ConfigurationCulDSac+Condition2PosN+House_TypeTwnhs+Overall_Material1+Overall_Material2+Overall_Material3+Overall_Material4+Overall_Material5+Overall_Material6+Overall_Material7+House_Condition3+House_Condition4+House_Condition5+House_Condition6+Roof_QualityCT+BsmtFinType1GLQ+Heating_TypeGrav+Heating_QualityEx+Air_ConditioningN+Kitchen_QualityEx+Functional_RateMajD2+Functional_RateSD+Garage2Types+Lot_Size+Remodel_Year+Underground_Full_Bathroom+Full_Bathroom_Above_Grade+Half_Bathroom_Above_Grade+Kitchen_Above_Grade+Garage_Size+Screen_Lobby_Area"
-  m1_v <- as.vector(strsplit(m1, "\\+"))
-  m1_v
-
-  m2 <- "Neighborhood.StoneBr+Condition2.PosN+Roof_Quality.CT+Kitchen_Quality.Ex+Lot_Size+Overall_Material+House_Condition+Construction_Year+Brick_Veneer_Area+BsmtUnfSF+Total_Basement_Area+Grade_Living_Area+Garage_Size"
-  m2_v <- as.vector(strsplit(m2, "\\+"))
-  m2_v
-}
+#if (FALSE) {
+#  m1 <- "Zoning_ClassCommer+Zoning_ClassFVR+Zoning_ClassRHD+Zoning_ClassRLD+Lot_ConfigurationCulDSac+Condition2PosN+House_TypeTwnhs+Overall_Material1+Overall_Material2+Overall_Material3+Overall_Material4+Overall_Material5+Overall_Material6+Overall_Material7+House_Condition3+House_Condition4+House_Condition5+House_Condition6+Roof_QualityCT+BsmtFinType1GLQ+Heating_TypeGrav+Heating_QualityEx+Air_ConditioningN+Kitchen_QualityEx+Functional_RateMajD2+Functional_RateSD+Garage2Types+Lot_Size+Remodel_Year+Underground_Full_Bathroom+Full_Bathroom_Above_Grade+Half_Bathroom_Above_Grade+Kitchen_Above_Grade+Garage_Size+Screen_Lobby_Area"
+#  m1_v <- as.vector(strsplit(m1, "\\+"))
+#  m1_v
+#
+#  m2 <- "Neighborhood.StoneBr+Condition2.PosN+Roof_Quality.CT+Kitchen_Quality.Ex+Lot_Size+Overall_Material+House_Condition+Construction_Year+Brick_Veneer_Area+BsmtUnfSF+Total_Basement_Area+Grade_Living_Area+Garage_Size"
+#  m2_v <- as.vector(strsplit(m2, "\\+"))
+#  m2_v
+#}
 
 #a <- readRDS("one.rds")
 #b <- readRDS("two.rds")
