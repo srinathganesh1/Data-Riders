@@ -191,8 +191,42 @@ do_liner_model <- function (dependent_var_name, data, vif_threashold, max_iterat
   return (model)
 }
 
+rsme <- function (model) {
+  return (sqrt(mean(residuals(model)^2)))
+}
+
 training_super_data <- get_data("data/Property_Price_Train.csv")
 training_data <- training_super_data$data
+
+## set the seed to make your partition reproducible
+#set.seed(123)
+#train_index <- sample(seq_len(nrow(training_super_data$data)), size = floor(0.7 * nrow(training_super_data$data)))
+#training_data <- training_super_data$data[train_index, ]
+#testing_data <- training_super_data$data[-train_index, ]
+
+validate_model <- function () {
+  d <- training_data
+  unscale_f <- TRUE
+  predicted <- predict(model, d)
+  actual <- d$Sale_Price
+
+  if (unscale_f) {
+    predicted <- exp(predicted)
+    actual <- exp(actual)
+  }
+
+  diff <- abs(actual - predicted)
+  res <- data.frame(
+    actual=actual,
+    predicted=predicted,
+    diff=diff,
+    diff_pc=diff/actual * 100
+  )
+
+  #return (res)
+  print(paste("RSME: ", round(sqrt(mean(diff^2)))))
+  return (summary(res$diff_pc))
+}
 
 options(scipen=999)  # skip e values # https://stackoverflow.com/a/25947542/1897935
 

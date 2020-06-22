@@ -1,4 +1,7 @@
 data <- read.csv("/home/admin-12/Documents/IMARTICUS/Data-Riders/LinearRegression/data/Property_Price_Train.csv")
+library(car)
+library(dplyr)
+library(ggplot2)
 
 handle_missing_values <- function (input) {
   output <- input
@@ -76,4 +79,17 @@ handlle_col_na <- function (column, default_value) {
 
 data <- handle_missing_values(data)
 
+# one
 summary(lm(Sale_Price ~ ., data=data))
+
+# two
+model <- lm(Sale_Price ~ Zoning_Class + Lot_Size + Road_Type + Lot_Configuration + Property_Slope + Neighborhood + Condition1 + Condition2 + House_Type + Overall_Material + House_Condition + Construction_Year + Roof_Quality + Brick_Veneer_Area + Exterior_Material + Basement_Height + Exposure_Level + BsmtFinSF1 + BsmtFinType2 + BsmtFinSF2 + BsmtUnfSF + Heating_Quality + First_Floor_Area + Second_Floor_Area + Bedroom_Above_Grade + Kitchen_Above_Grade + Kitchen_Quality + Rooms_Above_Grade + Functional_Rate + Fireplaces + Garage_Size + Garage_Quality + Screen_Lobby_Area + Pool_Area + Pool_Quality + Fence_Quality + Sale_Type + Sale_Condition, data = data)
+summary(model)
+
+# three
+model <- lm(Sale_Price ~ Zoning_Class + Lot_Size + Road_Type + Lot_Configuration + Property_Slope + Neighborhood + Condition1 + Condition2 + House_Type + Overall_Material + House_Condition + Construction_Year + Roof_Quality + Brick_Veneer_Area + Exterior_Material + Basement_Height + Exposure_Level + BsmtFinSF1 + BsmtFinSF2 + BsmtUnfSF + First_Floor_Area + Second_Floor_Area + Bedroom_Above_Grade + Kitchen_Above_Grade + Kitchen_Quality + Rooms_Above_Grade + Fireplaces + Garage_Size + Garage_Quality + Screen_Lobby_Area + Pool_Quality + Sale_Condition, data = data)
+summary(model)
+
+# four
+model <- lm(Sale_Price ~ Zoning_Class + Lot_Size + Road_Type + Lot_Configuration + Property_Slope + Condition1 + Condition2 + House_Type + Overall_Material + House_Condition + Construction_Year + Roof_Quality + Brick_Veneer_Area + Exterior_Material + BsmtFinSF1 + BsmtFinSF2 + BsmtUnfSF + First_Floor_Area + Second_Floor_Area + Bedroom_Above_Grade + Kitchen_Above_Grade + Kitchen_Quality + Rooms_Above_Grade + Fireplaces + Garage_Size + Garage_Quality + Screen_Lobby_Area + Pool_Quality + Sale_Condition, data = data)
+summary(model)

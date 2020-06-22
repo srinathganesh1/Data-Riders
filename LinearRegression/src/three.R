@@ -4,3 +4,5 @@ model <- lm(Sale_Price~Screen_Lobby_Area+Garage_Size+Kitchen_Above_Grade+First_F
 summary(model)
 
 var_three <- names(model$coefficients)[-1]
+
+validate_model()
