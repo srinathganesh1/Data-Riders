@@ -225,6 +225,9 @@ validate_model <- function () {
 
   #return (res)
   print(paste("RSME: ", round(sqrt(mean(diff^2)))))
+  hist(res$diff_pc, main="Residual Relative Percentage (actual-predicted)/actual * 100",
+       xlab = "Residual Percentage")
+  plot(model)
   return (summary(res$diff_pc))
 }
 
