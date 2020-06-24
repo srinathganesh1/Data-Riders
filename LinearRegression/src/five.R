@@ -7,5 +7,4 @@ model <- lm(Sale_Price~Zoning_Class.Commer+Zoning_Class.FVR+Zoning_Class.RHD+Zon
 
 summary(model)
 
-
 validate_model()

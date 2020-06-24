@@ -4,5 +4,4 @@ model <- lm(Sale_Price~Condition2.PosN+Roof_Quality.CT+Kitchen_Quality.Ex+
 
 summary(model)
 
-
 validate_model()
