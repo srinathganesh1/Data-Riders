@@ -10,14 +10,51 @@ library(psych)
 train <- read.csv('D:/Data Science/Advan house price/Property_Price_Train.csv')
 test <- read.csv('D:/Data Science/Advan house price/Property_Price_Test.csv')
 head(train)
+
+
+plot(train$Overall_Material,train$Sale_Price)
+abline(lm(Sale_Price~Overall_Material,data=train),col='blue')
+
+plot(train$Screen_Lobby_Area,train$Sale_Price)
+abline(lm(Sale_Price~Screen_Lobby_Area,data=train),col='blue')
+
+
+plot(train$Kitchen_Quality,train$Sale_Price,xlab='Kitchen Quality',ylab='Sale Price')
+#abline(lm(Sale_Price~Kitchen_Quality,data=train),col='blue')
+plot(train$Heating_Quality,train$Sale_Price,xlab='Heating Quality',ylab='Sale Price')
+
+plot(train$Air_Conditioning,train$Sale_Price,xlab='Air_Conditioning',ylab='Sale Price')
+
+plot(train$First_Floor_Area,train$Sale_Price,xlab='First_Floor_Area',ylab='Sale Price')
+abline(lm(Sale_Price~First_Floor_Area,data=train),col='blue')
+
+plot(train$Second_Floor_Area,train$Sale_Price,xlab='Second_Floor_Area',ylab='Sale Price')
+abline(lm(Sale_Price~Second_Floor_Area,data=train),col='blue')
+
+plot(train$Construction_Year,train$Sale_Price,xlab='Construction_Year',ylab='Sale Price')
+abline(lm(Sale_Price~Construction_Year,data=train),col='blue')
+
+
+plot(train$Grade_Living_Area,train$Sale_Price,xlab='Grade_Living_Area',ylab='Sale Price')
+abline(lm(Sale_Price~Grade_Living_Area,data=train),col='blue')
+
+# c <- train %>% select_if(is.numeric)
+# corr <- cor(c)
+# library(ggcorrplot)
+# ggcorrplot(c)
+
 df <- rbind(train[,-81],test)
 df <- df[,-1]
 head(df)
 dim(df)
+
+
+hist(train$Sale_Price)
 SP <- train$Sale_Price
 hist(SP)
 describe(SP)
 SP <- log(SP)
+head(SP)
 hist(SP)
 describe(SP)
 #summary(df)
@@ -73,6 +110,9 @@ dfnum <- kNN(dfnum)
 dim(dfnum)
 head(dfnum)
 dfnum <- dfnum[,1:29]
+
+
+
 #vis_miss(dfnum)
 
 #handling Cat Features----
@@ -237,6 +277,8 @@ dim(dat)
 
 X <- dat[1:1459,]
 X$Sale_Price <- SP
+
+
 y <- dat[1460:2918,]
 dim(X)
 dim(y)
@@ -258,7 +300,7 @@ summary(model2)
 vif(model2)[vif(model2)>10]
 n <- names(vif(model2)[vif(model2)>10])
 
-vars2 <- vars[!vars%in%n]
+vars2 <- vars1[!vars1%in%n]
 
 
 paste(vars2,collapse = '+')
@@ -281,6 +323,9 @@ model4 <- lm(Sale_Price~Zoning_ClassCommer+Zoning_ClassFVR+Zoning_ClassRHD+Zonin
              ,data=X)
 
 summary(model4)
+plot(model4)
+
+
 vif(model4)
 vif(model4)[vif(model4)>5]
 
@@ -288,3 +333,76 @@ vif(model4)[vif(model4)>5]
 #predictions
 pred <- exp(predict(model4,data=X))
 head(pred)
+head(train$Sale_Price)
+head(exp(X$Sale_Price))
+sqrt(mean(pred-train$Sale_Price)^2)
+
+#prediction on test data
+pred1 <- exp(predict(model4,y))
+head(pred1)
+
+
+
+# #splitting train again into train80 for model and train 20 for testing
+# # 
+# X <- dat[1:1459,]
+# X$Sale_Price <- SP
+# dim(X)
+# head(X)
+# 
+# set.seed(123)
+# ind <- sample(2,nrow(X),replace=T,prob=c(0.7,0.3))
+# X80 <- X[ind==1,]
+# X20 <- X[ind==2,]
+# 
+# dim(X80)
+# dim(X20)
+# head(X20)
+# head(X80)
+# model4 <- lm(Sale_Price~Zoning_ClassCommer+Zoning_ClassFVR+Zoning_ClassRHD+Zoning_ClassRLD+Lot_ConfigurationCulDSac+Condition2PosN+House_TypeTwnhs+Overall_Material1+Overall_Material2+Overall_Material3+Overall_Material4+Overall_Material5+Overall_Material6+Overall_Material7+House_Condition3+House_Condition4+House_Condition5+House_Condition6+Roof_QualityCT+BsmtFinType1GLQ+Heating_TypeGrav+Heating_QualityEx+Air_ConditioningN+Kitchen_QualityEx+Functional_RateMajD2+Functional_RateSD+Garage2Types+Lot_Size+Remodel_Year+Underground_Full_Bathroom+Full_Bathroom_Above_Grade+Half_Bathroom_Above_Grade+Kitchen_Above_Grade+Garage_Size+Screen_Lobby_Area
+#              ,data=X80)
+# 
+# summary(model4)
+# 
+# 
+# #predictions on X80
+# pred <- exp(predict(model4,data=X80))
+# head(pred)
+# X80$Sale_Price
+# #head(train$Sale_Price)
+# exp(X80$Sale_Price)
+# z <- (pred-exp(X80$Sale_Price))^2
+# sqrt(mean(z))
+# 
+# #prediction on X20
+# pred1 <- exp(predict(model4,X20))
+# head(pred1)
+# head(X20$Sale_Price)
+# exp(X20$Sale_Price)
+# exp(X20$Sale_Price)
+# z1 <- (pred1-exp(X20$Sale_Price))^2
+# sqrt(mean(z1))
+# 
+
+
+#Decision trees----
+library(party)
+head(train)
+tree1 <- ctree(Sale_Price~., train)
+plot(tree1)
+plot(tree1,type='simple')
+
+
+pred <- predict(tree1,data=train)
+head(pred)
+head(train$Sale_Price)
+#head(exp(X$Sale_Price))
+sqrt(mean(pred-train$Sale_Price)^2)
+
+
+#prediction on test data
+pred1 <- predict(tree1,test)
+head(pred1)
+
+
+
