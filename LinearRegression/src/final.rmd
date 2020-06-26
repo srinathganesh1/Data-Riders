@@ -1,0 +1,58 @@
+---
+title: "R Notebook"
+author: admin-12
+date: 24/06/20
+output: html_notebook
+---
+
+Type any R code in the chunk, for example:
+```{r echo=FALSE, warning=FALSE}
+# Each team member would need to set their directory path to variable "project_dir"
+# we will make sure everything else is relative to "project_dir"
+project_dir <- "/home/admin-12/Documents/IMARTICUS/Data-Riders/LinearRegression"
+setwd(project_dir)
+source("src/main.R")
+```
+
+Model 1
+```{r}
+model <- do_liner_model("Sale_Price", training_data, 10, 3, 0.05)
+summary(model)
+
+var_one <- names(model$coefficients)[-1]
+
+validate_model()
+```
+
+Model 2
+```{r}
+model <- do_liner_model("Sale_Price", training_data, 10, 3, 0.001)
+summary(model)
+
+var_two <- names(model$coefficients)[-1]
+
+validate_model()
+```
+
+Model 3
+```{r}
+model <- do_liner_model("Sale_Price", training_data, 10, 1, 0.001)
+
+model <- lm(Sale_Price~Screen_Lobby_Area+Garage_Size+Kitchen_Above_Grade+First_Floor_Area+Second_Floor_Area+BsmtUnfSF+BsmtFinSF1+BsmtFinSF2+Remodel_Year+House_Condition+Construction_Year+Sale_Type.ConLD+Functional_Rate.MajD1+Functional_Rate.MajD2+Functional_Rate.MD+Kitchen_Quality.Ex+Air_Conditioning.N+Heating_Quality.Ex+Foundation_Type.PC+Exterior_Condition.Gd+Roof_Quality.CT+Condition2.PosN+Neighborhood.Edwards+Property_Slope.MS+Zoning_Class.Commer, data=training_data)
+summary(model)
+
+var_three <- names(model$coefficients)[-1]
+
+validate_model()
+```
+
+Model 4
+```{r}
+model <- lm(Sale_Price~Condition2.PosN+Roof_Quality.CT+Kitchen_Quality.Ex+
+  House_Condition+Construction_Year+BsmtFinSF1+BsmtFinSF2+BsmtUnfSF+
+  First_Floor_Area+Second_Floor_Area+Garage_Size, data=training_data)
+
+summary(model)
+
+validate_model()
+```
