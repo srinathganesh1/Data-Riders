@@ -4,3 +4,4 @@ options[[2]] <- var_two
 options[[3]] <- var_three
 
 Reduce(intersect, options)
+length(Reduce(intersect, options))
