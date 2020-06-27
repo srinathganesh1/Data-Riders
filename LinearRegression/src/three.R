@@ -6,3 +6,5 @@ summary(model)
 var_three <- names(model$coefficients)[-1]
 
 validate_model()
+
+anova(model)
