@@ -42,6 +42,7 @@ handle_missing_values <- function (input) {
   # Garage (Garage location) - NA means No Garage
   output$Garage <- handle_factor_col_na(output$Garage, "NoGarage")
   output$Garage_Quality <- handle_factor_col_na(output$Garage_Quality, "NoGarage")
+  output$Garage_Built_Year <- handlle_col_na(output$Garage_Built_Year, 0)
 
   # Lane_Type: Type of alley access to property - NA means No alley access
   output$Lane_Type <- handle_factor_col_na(output$Lane_Type, "NoAlleyAccess")
