@@ -1,4 +1,4 @@
-#bank loan 
+#bank loan (defining positive class is important)
 #we are concerned in defaulter to predict crctly
 ##table(train$default)
 #
@@ -35,50 +35,50 @@ test$default <- as.factor(test$default)
 default <- test[,9]
 test <- test[,-9]
 
-#findings
-str(d)
-d$ed <- as.factor(d$ed)
-d$default <- as.factor(d$default)
-
-#count
-
-count_def <- d %>% count(default) 
-count_def
-ggplot(count_def,aes(x=reorder(default,n),y=n))+geom_bar(stat='identity',fill='blue')+
-  geom_text(aes(label=n,vjust=-0.5))
-
-#education vs defaulters/Non def
-ggplot(d, aes(x=ed,fill=default))+ geom_bar(position = "dodge") + geom_text(stat='count',aes(label=..count..),position = position_dodge(0.9),vjust=-0.2) +
-  ylab("Count")
-
-#age dist of def/Non def
-ggplot(d) + geom_freqpoly(mapping = aes(x = age, color = default), binwidth = 2.5) +
-  ylab("Frequency")
-
-
-#income dist of def/Non def
-ggplot(d) + geom_freqpoly(mapping = aes(x = income, color = default), binwidth = 2.5) +
-  ylab("Frequency")
-
-
-#address dist of def/Non def
-ggplot(d) + geom_freqpoly(mapping = aes(x = address, color = default), binwidth = 2.5) +
-  ylab("Frequency")
-
-#debtinc dist of def/Non def
-ggplot(d) + geom_freqpoly(mapping = aes(x = debtinc, color = default), binwidth = 2.5) +
-  ylab("Frequency")
-
-
-
-#creddebt dist of def/Non def
-ggplot(d) + geom_freqpoly(mapping = aes(x = creddebt, color = default), binwidth = 2.5) +
-  ylab("Frequency")
-
-
-#employ dist of def/Non def
-ggplot(d) + geom_freqpoly(mapping = aes(x = employ, color = default), binwidth = 2.5) +
-  ylab("Frequency")
+# #findings
+# str(d)
+# d$ed <- as.factor(d$ed)
+# d$default <- as.factor(d$default)
+# 
+# #count
+# 
+# count_def <- d %>% count(default) 
+# count_def
+# ggplot(count_def,aes(x=reorder(default,n),y=n))+geom_bar(stat='identity',fill='blue')+
+#   geom_text(aes(label=n,vjust=-0.5))
+# 
+# #education vs defaulters/Non def
+# ggplot(d, aes(x=ed,fill=default))+ geom_bar(position = "dodge") + geom_text(stat='count',aes(label=..count..),position = position_dodge(0.9),vjust=-0.2) +
+#   ylab("Count")
+# 
+# #age dist of def/Non def
+# ggplot(d) + geom_freqpoly(mapping = aes(x = age, color = default), binwidth = 2.5) +
+#   ylab("Frequency")
+# 
+# 
+# #income dist of def/Non def
+# ggplot(d) + geom_freqpoly(mapping = aes(x = income, color = default), binwidth = 2.5) +
+#   ylab("Frequency")
+# 
+# 
+# #address dist of def/Non def
+# ggplot(d) + geom_freqpoly(mapping = aes(x = address, color = default), binwidth = 2.5) +
+#   ylab("Frequency")
+# 
+# #debtinc dist of def/Non def
+# ggplot(d) + geom_freqpoly(mapping = aes(x = debtinc, color = default), binwidth = 2.5) +
+#   ylab("Frequency")
+# 
+# 
+# 
+# #creddebt dist of def/Non def
+# ggplot(d) + geom_freqpoly(mapping = aes(x = creddebt, color = default), binwidth = 2.5) +
+#   ylab("Frequency")
+# 
+# 
+# #employ dist of def/Non def
+# ggplot(d) + geom_freqpoly(mapping = aes(x = employ, color = default), binwidth = 2.5) +
+#   ylab("Frequency")
 
 
 
@@ -92,12 +92,12 @@ model0 <- glm(default~employ+debtinc+creddebt , data=train,family='binomial')
 summary(model0)
 
 pred0 <- predict(model0,type='response')
-f0 <- table(train$default,pred1>=0.5)
+f0 <- table(train$default,pred1>=0.1)
 acc0=sum(diag(f0))/sum(f0)
 acc0
 
 library(caret)
-conf_matrix_m0_train <- confusionMatrix(as.factor(ifelse(predict(model0, train, type="response") >= 0.5, 1, 0)), train$default)
+conf_matrix_m0_train <- confusionMatrix(as.factor(ifelse(predict(model0, train, type="response") >= 0.1, 1, 0)), train$default,positive = '1')
 conf_matrix_m0_train
 
 
@@ -120,12 +120,12 @@ auc_m0_train
 
 pr_0 <- predict(model0,test, type='response')
 pr_0
-t0 <- table(default,pr_0>=0.5)
+t0 <- table(default,pr_0>=0.1)
 t0
 acc0_log_test=sum(diag(t0))/sum(t0)
 acc0_log_test #test acc
 library(caret)
-conf_matrix_m0_test <- confusionMatrix(as.factor(ifelse(predict(model0, test, type="response") >= 0.5, 1, 0)), default)
+conf_matrix_m0_test <- confusionMatrix(as.factor(ifelse(predict(model0, test, type="response") >= 0.1, 1, 0)), default,positive = '1')
 conf_matrix_m0_test
 
 library(ROCR)
@@ -155,12 +155,12 @@ model1 <- glm(default~., data=train,family='binomial')
 summary(model1)
 
 pred1 <- predict(model1,type='response')
-f1 <- table(train$default,pred1>=0.3)
+f1 <- table(train$default,pred1>=0.1)
 acc1=sum(diag(f1))/sum(f1)
 acc1
 
 library(caret)
-conf_matrix_m1_train <- confusionMatrix(as.factor(ifelse(predict(model1, train, type="response") >= 0.3, 1, 0)), train$default)
+conf_matrix_m1_train <- confusionMatrix(as.factor(ifelse(predict(model1, train, type="response") >= 0.1, 1, 0)), train$default,positive = '1')
 conf_matrix_m1_train
 
 
@@ -183,12 +183,12 @@ auc_m1_train
 
 pr_1 <- predict(model1,test, type='response')
 pr_1
-t <- table(default,pr_1>=0.3)
+t <- table(default,pr_1>=0.1)
 t
 acc1_log_test=sum(diag(t))/sum(t)
 acc1_log_test #test acc
 library(caret)
-conf_matrix_m1_test <- confusionMatrix(as.factor(ifelse(predict(model1, test, type="response") >= 0.3, 1, 0)), default)
+conf_matrix_m1_test <- confusionMatrix(as.factor(ifelse(predict(model1, test, type="response") >= 0.1, 1, 0)), default,positive = '1')
 conf_matrix_m1_test
 
 library(ROCR)
@@ -230,7 +230,7 @@ model4 <- glm(default~employ+creddebt+address+debtinc,train,family='binomial')
 summary(model4)
 
 pred4 <- predict(model4,train,type='response')
-f4 <- table(train$default,pred4>=0.3)
+f4 <- table(train$default,pred4>=0.1)
 acc4_log_train=sum(diag(f4))/sum(f4)
 acc4_log_train
 table(train$default)
@@ -240,7 +240,7 @@ perf4 <- performance(p4,"tpr","fpr")
 plot(perf4,colorize=TRUE, print.cutoffs.at=seq(0,1,by=0.1), text.adj=c(-0.2,1.7))
 
 library(caret)
-conf_matrix_m4_train <- confusionMatrix(as.factor(ifelse(predict(model4, train, type="response") >= 0.3, 1, 0)), train$default)
+conf_matrix_m4_train <- confusionMatrix(as.factor(ifelse(predict(model4, train, type="response") >= 0.1, 1, 0)), train$default,positive = '1')
 conf_matrix_m4_train
 
 
@@ -283,12 +283,12 @@ str(pr)
 pr
 
 
-t <- table(default,pr>=0.3)
+t <- table(default,pr>=0.1)
 t
 acc44_log_test=sum(diag(t))/sum(t)
 acc44_log_test #test acc
 library(caret)
-conf_matrix_m4_test <- confusionMatrix(as.factor(ifelse(predict(model4, test, type="response") >= 0.3, 1, 0)), default)
+conf_matrix_m4_test <- confusionMatrix(as.factor(ifelse(predict(model4, test, type="response") >= 0.1, 1, 0)), default,positive = '1')
 conf_matrix_m4_test
 
 
@@ -434,5 +434,99 @@ summary(tree_train) # DT train accuracy is 87.9%
 
 acc44_log_test #log reg test acc is 76.3
 acc4_log_train  #log reg train acc is 80.7%
+
+
+
+#KNN Classifier----
+dim(train)
+train$default
+dim(test)
+default
+
+str(train)
+str(test)
+
+#normalization
+
+normalize <- function(x){
+  
+  return((x-min(x))/(max(x)-min(x)))
+}
+
+normalize(c(10,20,30,40,50))
+
+#new normalized data
+head(train[,-c(2,9)])
+head(test[,-2])
+train_norm <- as.data.frame(lapply(train[,-c(2,9)], normalize))
+test_norm <- as.data.frame(lapply(test[,-2], normalize))
+train_labels <- train$default
+test_labels <- default
+
+head(train_norm)
+head(test_norm)
+dim(train_norm)
+dim(test_norm)
+
+
+
+#prediciton
+library(class)
+
+#trainig and testing done at a time and k is sqrt of num of obs.
+test_pred <- knn(train_norm,test_norm,cl=train_labels,k=23)
+summary(test_pred)
+table(test_pred)
+
+#evaluate model
+
+# library(gmodels)
+ # CrossTable(x=test_labels, y=test_pred, chisq = F)
+
+conf_matrix_KNN_test <- confusionMatrix(test_pred, test_labels,positive = '1')
+conf_matrix_KNN_test
+
+#testing diff k values
+i=1
+acc=1
+for (i in 1:30){
+   test_pred <- knn(train_norm,test_norm,cl=train_labels,k=i)
+   acc[i] <- sum(test_labels == test_pred)/NROW(test_labels) *100
+   j=i
+   cat(j,'=',acc[i],'')
+   }
+
+max(acc) #k=26 is best for acc
+
+
+
+#Accuracy plot
+plot(acc)
+
+
+#Loop evaluation
+acc <- c()
+spec <- c()
+sens <- c()
+for (i in 1:30) {
+  test_pred <- knn(train_norm,test_norm,cl=train_labels,k=i)
+  acc <- c(acc,length(which(test_labels==test_pred)==TRUE)/length(test_labels))
+  spec <- c(spec,length(which((test_labels==test_pred) & (test_labels==0))) / length(which(test_labels==0)))
+  sens <- c(sens,length(which((test_labels==test_pred) & (test_labels==1))) / length(which(test_labels==1)))
+}
+evaldf <- data.frame(k=1:30,Accuracy=acc,Sensitivity=sens,Specificity=spec)
+evaldf
+
+
+
+
+
+
+
+
+
+
+
+
 
 
