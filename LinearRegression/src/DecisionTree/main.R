@@ -1,5 +1,5 @@
 # Load Liner Regression Project
-project_dir <- "/home/admin-12/Documents/IMARTICUS/Data-Riders-GITHUB/LinearRegression"
+project_dir <- "/home/admin-12/Documents/IMARTICUS/Data-Riders/LinearRegression"
 setwd(project_dir)
 source("src/main.R")
 
@@ -36,6 +36,7 @@ evalute_prediction <- function (actual, predicted) {
   print(paste("RSME: ", round(sqrt(mean(diff^2)))))
   print(paste("MSE: ", round(mean(diff^2))))
   print(paste("MAE (Mean Absolute Error): ", round(mean(abs(diff)))))
+  print(paste("MAPE (Mean Absolute Percentage Error): ", round(mean(abs((actual - predicted)/actual)) * 100, 2)))
 }
 
 validate_tree <- function (model) {
@@ -69,8 +70,8 @@ print("########### Random Forest ############")
 #model_formula <- paste0(paste0("Sale_Price", "~"), paste(var_filter, collapse = "+")) # not working
 rf_model <- randomForest(Sale_Price~Zoning_Class.Commer+Condition2.PosN+Roof_Quality.CT+Heating_Quality.Ex+Air_Conditioning.N+Kitchen_Quality.Ex+Functional_Rate.MajD2+Lot_Size+Overall_Material+House_Condition+Construction_Year+Remodel_Year+BsmtFinSF1+BsmtFinSF2+BsmtUnfSF+First_Floor_Area+Second_Floor_Area+Garage_Size+Screen_Lobby_Area,
                          training_data, mtry = 5, importance = TRUE)
-rf_model <- randomForest(Sale_Price~.,
-                         training_data, mtry = 5, importance = TRUE)
+#rf_model <- randomForest(Sale_Price~.,
+#                         training_data, mtry = 5, importance = TRUE)
 importance(rf_model)
 predicted <- predict(rf_model, newdata = training_data)
 evalute_prediction(training_data$Sale_Price, as.numeric(predicted))
