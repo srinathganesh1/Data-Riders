@@ -1,4 +1,4 @@
-# Load Liner Regression Project
+hu# Load Liner Regression Project
 project_dir <- "/home/admin-12/Documents/IMARTICUS/Data-Riders/LinearRegression"
 setwd(project_dir)
 source("src/main.R")
@@ -76,17 +76,17 @@ evalute_prediction(training_data$Sale_Price, predicted$pred)
 #library(class)
 #knn(train = knn_dataset[1:1021, ], test = knn_dataset[1022:1459, ], cl=training_data[1:1021, ]["Sale_Price"], k=3)
 
-print("########### Random Forest ############")
+print("########### Bagging Random Forest ############")
 #model_formula <- paste0(paste0("Sale_Price", "~"), paste(var_filter, collapse = "+")) # not working
 rf_model <- randomForest(Sale_Price~Zoning_Class.Commer+Condition2.PosN+Roof_Quality.CT+Heating_Quality.Ex+Air_Conditioning.N+Kitchen_Quality.Ex+Functional_Rate.MajD2+Lot_Size+Overall_Material+House_Condition+Construction_Year+Remodel_Year+BsmtFinSF1+BsmtFinSF2+BsmtUnfSF+First_Floor_Area+Second_Floor_Area+Garage_Size+Screen_Lobby_Area,
-                         training_data, mtry = 5, importance = TRUE)
+                         training_data, mtry = 19, importance = TRUE)
 #rf_model <- randomForest(Sale_Price~.,
 #                         training_data, mtry = 5, importance = TRUE)
 importance(rf_model)
 predicted <- predict(rf_model, newdata = training_data)
 evalute_prediction(training_data$Sale_Price, as.numeric(predicted))
 
-print("########### Random Forest 2 ############")
+print("########### Random Forest ############")
 rf_model <- randomForest(Sale_Price~Condition2.PosN+Roof_Quality.CT+Kitchen_Quality.Ex+
   House_Condition+Construction_Year+BsmtFinSF1+BsmtFinSF2+BsmtUnfSF+
   First_Floor_Area+Second_Floor_Area+Garage_Size,
