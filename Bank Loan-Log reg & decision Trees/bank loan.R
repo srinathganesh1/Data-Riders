@@ -359,10 +359,13 @@ library(party)
 head(train)
 head(test)
 library(tree)
-
+library(rpart)
 #train and test accuracy without pruning
+
 tree_train <- tree(default~., data=train)
 summary(tree_train) #accuracy near to 88 percent...23 terminal nodes
+plot(tree_train)
+text(tree_train,pretty = 0)
 
 pred <- predict(tree_train,test,type='class')
 tab <- table(pred,default)
@@ -396,6 +399,84 @@ acc1_P_tree <- sum(diag(tab1))/sum(tab1)
 acc1_P_tree #accuracy 72.5..with pruning .9 terminal nodes
 acc_tree #accuracy  ..withour pruning. 23 terminal nodes
 
+#Decision Trees Final----
+dim(train)
+dim(test)
+
+
+library(rpart)
+library(rpart.plot)
+fit <- rpart(default~., data = train, method = 'class')
+rpart.plot(fit,extra=104,cex = 0.7,shadow.col='dark grey')
+attributes(fit)
+# predictions-train
+p <- predict(fit, train, type = "p")
+head(p)
+head(p[,2])
+
+pred1 <- ifelse(p[,2]>=0.1,1,0)
+head(pred1)
+
+library(caret)
+conf_matrix_dt_train <- confusionMatrix(as.factor(pred1), train$default,positive = '1')
+conf_matrix_dt_train
+
+votes1 <- p[,2]
+
+pred11 <- prediction(votes1,train$default)
+perf <- performance(pred11,"tpr","fpr")
+plot(perf,colorize=TRUE, print.cutoffs.at=seq(0,1,by=0.1), text.adj=c(-0.2,1.7))
+
+
+auc_dt_train <- performance(pred11, measure = "auc")
+auc_dt_train <- auc_dt_train@y.values[[1]]
+auc_dt_train
+
+#predictions- test
+
+pred2=predict(fit,test,type = 'prob')[,2] #class 1 only
+head(pred2)
+
+
+pred22 <- prediction(pred2,default)
+perf1 <- performance(pred22,"tpr","fpr")
+plot(perf1,colorize=TRUE, print.cutoffs.at=seq(0,1,by=0.1), text.adj=c(-0.2,1.7))
+
+
+auc_dt_test <- performance(pred22, measure = "auc")
+auc_dt_test <- auc_dt_test@y.values[[1]]
+auc_dt_test
+
+
+library(caret)
+conf_matrix_dt_test <- confusionMatrix(as.factor(ifelse(predict(fit, test, type="prob")[,2] >= 0.1, 1, 0)), default,positive = '1')
+conf_matrix_dt_test 
+
+
+
+
+# evaluation <- function(model, data, atype) {
+#   cat("\nConfusion matrix:\n")
+#   prediction = predict(model, data, type=atype)
+#   xtab = table(prediction, data$Class)
+#   print(xtab)
+#   cat("\nEvaluation:\n\n")
+#   accuracy = sum(prediction == data$Class)/length(data$Class)
+#   precision = xtab[1,1]/sum(xtab[,1])
+#   recall = xtab[1,1]/sum(xtab[1,])
+#   f = 2 * (precision * recall) / (precision + recall)
+#   cat(paste("Accuracy:\t", format(accuracy, digits=2), "\n",sep=" "))
+#   cat(paste("Precision:\t", format(precision, digits=2), "\n",sep=" "))
+#   cat(paste("Recall:\t\t", format(recall, digits=2), "\n",sep=" "))
+#   cat(paste("F-measure:\t", format(f, digits=2), "\n",sep=" "))
+# }
+# evaluation(tree, validationData, "class")
+
+
+
+
+
+
 
 
 #random forest----
@@ -403,22 +484,89 @@ acc_tree #accuracy  ..withour pruning. 23 terminal nodes
 library(randomForest)
 
 set.seed(1)
-rf <- randomForest(default~., data=train,importance=T)
+rf <- randomForest(default~., data=train,importance=T,cutoff=c(0.9,0.1)) #threshold for 1 is 0.1
 importance(rf)
 varImpPlot(rf,col='red')
 rf #OOB error is 18.4%
+#rf$err.rate
+plot(rf)
+attributes(rf)
+rf$votes
+rf$confusion
+rf$predicted
+
+pred1 <- rf$predicted
+conf_matrix_rf_train <- confusionMatrix(as.factor(pred1), train$default,positive = '1')
+conf_matrix_rf_train
+
+votes1 <- rf$votes[,2]
+
+ pred11 <- prediction(votes1,train$default)
+ perf <- performance(pred11,"tpr","fpr")
+ plot(perf,colorize=TRUE, print.cutoffs.at=seq(0,1,by=0.1), text.adj=c(-0.2,1.7))
+ 
+
+auc_rf_train <- performance(pred11, measure = "auc")
+auc_rf_train <- auc_rf_train@y.values[[1]]
+auc_rf_train
+
+
 
 
 #testing RF
-pred2=predict(rf,test,type = 'class')
-tab2 <- table(pred2,default)
-tab2
-acc2_rf <- sum(diag(tab2))/sum(tab2)
-acc2_rf #random forest accuracy is 75.35
+pred2=predict(rf,test,type = 'prob')[,2] #class 1 only
+head(pred2)
+
+
+pred22 <- prediction(pred2,default)
+perf1 <- performance(pred22,"tpr","fpr")
+plot(perf1,colorize=TRUE, print.cutoffs.at=seq(0,1,by=0.1), text.adj=c(-0.2,1.7))
+
+
+auc_rf_test <- performance(pred22, measure = "auc")
+auc_rf_test <- auc_rf_test@y.values[[1]]
+auc_rf_test
+
+
+library(caret)
+conf_matrix_rf <- confusionMatrix(as.factor(ifelse(predict(rf, test, type="prob")[,2] >= 0.1, 1, 0)), default,positive = '1')
+conf_matrix_rf 
+
+names(train)
+# tab2 <- table(default,pred2>0.1)
+# tab2
+# acc2_rf <- sum(diag(tab2))/sum(tab2)
+# acc2_rf #random forest accuracy 
 
 
 
-#summary
+
+# library(ROCR)
+# perf = prediction(pred2[,2], default) #selecting probs of 1s vs default
+# # 1. Area under curve
+# auc = performance(perf, "auc")
+# auc
+# # 2. True Positive and Negative Rate
+# pred3 = performance(perf, "tpr","fpr")
+# # 3. Plot the ROC curve
+# plot(pred3,main="ROC Curve for Random Forest",col=2,lwd=2)
+# abline(a=0,b=1,lwd=2,lty=2,col="gray")
+
+
+
+
+#random forest final----
+
+#select mtry with less OOB error
+mtry <- tuneRF(mydata[-1],mydata$Creditability, ntreeTry=500,
+               stepFactor=1.5,improve=0.01, trace=TRUE, plot=TRUE)
+best.m <- mtry[mtry[, 2] == min(mtry[, 2]), 1]
+print(mtry)
+print(best.m)
+
+
+
+#summary----
 
 acc2_rf #random forest test accuracy is 75.35
 rf  #train accurcy is 81.6
@@ -487,6 +635,7 @@ conf_matrix_KNN_test <- confusionMatrix(test_pred, test_labels,positive = '1')
 conf_matrix_KNN_test
 
 #testing diff k values
+set.seed(11)
 i=1
 acc=1
 for (i in 1:30){
@@ -496,7 +645,7 @@ for (i in 1:30){
    cat(j,'=',acc[i],'')
    }
 
-max(acc) #k=26 is best for acc
+max(acc) #k=25 is best for acc
 
 
 
@@ -505,6 +654,7 @@ plot(acc)
 
 
 #Loop evaluation
+set.seed(11)
 acc <- c()
 spec <- c()
 sens <- c()
@@ -516,6 +666,15 @@ for (i in 1:30) {
 }
 evaldf <- data.frame(k=1:30,Accuracy=acc,Sensitivity=sens,Specificity=spec)
 evaldf
+
+
+
+
+
+
+
+
+
 
 
 
