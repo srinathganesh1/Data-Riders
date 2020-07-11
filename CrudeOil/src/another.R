@@ -1,6 +1,6 @@
 #Crude oil Forecasting
 
-crude <- read.csv(file.choose())
+crude <- read.csv("/home/admin-12/Documents/IMARTICUS/Data-Riders/CrudeOil/data/crudets.csv")
 head(crude)
 
 crudets <- ts(crude, frequency = 12, start=c(2000,6))
