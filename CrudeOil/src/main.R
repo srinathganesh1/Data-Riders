@@ -16,22 +16,12 @@ data <- read.csv("data/crudets.csv")
 train_data <- data[1:(nrow(data)-12) ,]
 test_data <- data[(nrow(data)-11):nrow(data) ,]
 
-# -----------------------------------------
-plot_ly(train_data, x= ~X, y= ~Price, name="Price", type="scatter", mode="lines") %>%
-  add_trace(y=c(rep(0, 1), diff(ts(train_data$Price), differences = 1)), name="difference 1") %>%
-  add_trace(y=c(rep(0, 2), diff(ts(train_data$Price), differences = 2)), name="difference 2")
-
-adf.test(ts(train_data$Price))
-adf.test(diff(ts(train_data$Price), differences = 1))
-adf.test(diff(ts(train_data$Price), differences = 2))
-
-acf(diff(ts(train_data$Price), differences = 1))
-pacf(diff(ts(train_data$Price), differences = 1))
-# -----------------------------------------
+ts(data$Price, frequency = 12, start=c(2000,6))
+plot.ts(ts(data$Price, frequency = 12, start=c(2000,6)), ylab = "Crule Oil Price (USD) per barrel")
 
 # -----------------------------------------
 fig <- plot_ly(train_data, x= ~X, y= ~Price, name="Price", type="scatter", mode="lines")
-for (n in 2:20) {
+for (n in 1:20) {
   sma <- SMA(train_data$Price, n=n)
   residual <- train_data$Price - sma
   residual <- residual[!is.na(residual)]
@@ -45,7 +35,7 @@ fig
 
 # -----------------------------------------
 # MOCK PREDICT FUTURE DATA
-sma_value <- 5
+sma_value <- 2
 sma <- SMA(train_data$Price, n=sma_value)
 
 to_forcast_count <- 50
@@ -63,7 +53,7 @@ sqrt(mean((test_data$Price - as.numeric(forecast(sma, h=to_forcast_count)$mean))
 # -----------------------------------------------------
 # Predict with SMA
 to_forcast_count <- 12
-sma_value <- 5
+sma_value <- 2
 sma <- SMA(train_data$Price, n=sma_value)
 forecast_low <- c(rep(0, nrow(train_data)), as.numeric(forecast(sma, h=to_forcast_count)$lower[,1]))
 forecast_mean <- c(rep(0, nrow(train_data)), as.numeric(forecast(sma, h=to_forcast_count)$mean))
@@ -73,6 +63,11 @@ plot_ly(data, x= ~X, y= ~Price, name="Price", type="scatter", mode="lines") %>%
   add_trace(y=forecast_mean, name="Forecast Mean") %>%
   add_trace(y=forecast_high, name="Forecast High") %>%
   add_segments(y=0, yend = max(train_data$Price), x=229, xend=229, name="Forecast Start")
+res <- test_data$Price - as.numeric(forecast(sma, h=to_forcast_count)$mean)
+round(sqrt(mean((res)^2)), 2) # test data RSME
+round(mean(abs(res)), 2) # test data MAE (Mean Absolute Error)
+round(mean(abs(res/test_data$Price)) * 100, 2) # MAPE (Mean Absolute Percentage Error)
+qqPlot(res)
 # -----------------------------------------------------
 
 
@@ -106,7 +101,25 @@ qqPlot(do_forecast$residuals)
 
 qqnorm(do_forecast$residuals)
 qqline(do_forecast$residuals)
+
+res <- test_data$Price - as.numeric(do_forecast$mean)
+round(sqrt(mean((res)^2)), 2) # test data RSME
+round(mean(abs(res)), 2) # test data MAE (Mean Absolute Error)
+round(mean(abs(res/test_data$Price)) * 100, 2) # MAPE (Mean Absolute Percentage Error)
 # -----------------------------------------------------
+
+# -----------------------------------------
+plot_ly(train_data, x= ~X, y= ~Price, name="Price", type="scatter", mode="lines") %>%
+  add_trace(y=c(rep(0, 1), diff(ts(train_data$Price), differences = 1)), name="difference 1") %>%
+  add_trace(y=c(rep(0, 2), diff(ts(train_data$Price), differences = 2)), name="difference 2")
+
+adf.test(ts(train_data$Price))
+adf.test(diff(ts(train_data$Price), differences = 1))
+adf.test(diff(ts(train_data$Price), differences = 2))
+
+acf(diff(ts(train_data$Price), differences = 1))
+pacf(diff(ts(train_data$Price), differences = 1))
+# -----------------------------------------
 
 # -----------------------------------------------------
 # arima
@@ -133,3 +146,8 @@ hist(do_arima$residuals)
 qqPlot(do_arima$residuals)
 Box.test(do_arima$residuals, type="Ljung-Box")
 accuracy(do_arima)
+
+res <- test_data$Price - as.numeric(do_forecast$mean)
+round(sqrt(mean((res)^2)), 2) # test data RSME
+round(mean(abs(res)), 2) # test data MAE (Mean Absolute Error)
+round(mean(abs(res/test_data$Price)) * 100, 2) # MAPE (Mean Absolute Percentage Error)
