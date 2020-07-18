@@ -1,4 +1,4 @@
-hu# Load Liner Regression Project
+# Load Liner Regression Project
 project_dir <- "/home/admin-12/Documents/IMARTICUS/Data-Riders/LinearRegression"
 setwd(project_dir)
 source("src/main.R")

@@ -2,7 +2,7 @@ setwd("/home/admin-12/Documents/IMARTICUS/Data-Riders/CrudeOil")
 
 load_packages <- function () {
   # Imports
-  packages <- c("dplyr", "TTR", "ggplot2", "plotly", "forecast", "psych", "car", "tseries")
+  packages <- c("dplyr", "TTR", "ggplot2", "plotly", "forecast", "psych", "car", "tseries", "dynlm", "FinTS", "fGarch")
   installed_packages <- packages %in% rownames(installed.packages())
   if (any(installed_packages == FALSE)) {
     install.packages(packages[!installed_packages])
@@ -151,3 +151,44 @@ res <- test_data$Price - as.numeric(do_forecast$mean)
 round(sqrt(mean((res)^2)), 2) # test data RSME
 round(mean(abs(res)), 2) # test data MAE (Mean Absolute Error)
 round(mean(abs(res/test_data$Price)) * 100, 2) # MAPE (Mean Absolute Percentage Error)
+
+# ------------- ARCH ---------------
+
+# https://www.econometrics-with-r.org/16-4-volatility-clustering-and-autoregressive-conditional-heteroskedasticity.html
+g_fit <- garchFit(data = train_data$Price, trace = FALSE)
+g_git_sig <- g_fit@sigma.t
+g_fit_mu <- g_fit@fit$coef[1]
+# compute deviations of the percentage changes from their mean
+dev_pc_change_from_mean <- train_data$Price - g_fit_mu
+plot(train_data$X, dev_pc_change_from_mean, type = "l",
+     col = "steelblue",
+     ylab = "Percent",
+     xlab = "Date",
+     main = "Estimated Bands of +- One Conditional Standard Deviation",
+     lwd = 2,
+  ylim = c(-150, 150))
+abline(0, 0)
+
+# add GARCH(1,1) confidence bands (one standard deviation) to the plot
+lines(train_data$X, g_fit_mu + g_git_sig, col="darkred", lwd=2)
+lines(train_data$X, g_fit_mu - g_git_sig, col="darkred", lwd=2)
+
+# https://rpubs.com/cyobero/arch
+
+# Estimating ARCH Models
+options(scipen=999)
+d_mean <- dynlm(Price~1, data=train_data)
+ehatsq <- ts(resid(d_mean)^2)
+d_arch <- dynlm(ehatsq ~ L(ehatsq), data=train_data)
+summary(d_arch)
+plot(d_arch)
+
+# We can check for ARCH effects by using the ArchTest() function from the FinTS package. We will use a significance level of α=0.05 for our null hypothesis test.
+ArchTest(train_data$Price, lags = 1, demean = TRUE)
+# Because the p-value is < 0.05, we reject the null hypothesis and conclude the presence of ARCH(1) effects.
+
+arch_fit <- garchFit(~garch(1,0), data = train_data$Price, trace = F)
+summary(arch_fit)
+
+arch_ht <- arch_fit@h.t
+ggplot(train_data, aes(y = arch_ht, x = X)) + geom_line(col = '#ff9933') + ylab('Conditional Variance') + xlab('Date')
